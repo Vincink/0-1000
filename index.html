@@ -4,16 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>0 à 1000 - Le Jeu Web</title>
-  
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- React & ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  
-  <!-- Babel pour compiler le JSX dans le navigateur -->
+
+  <!-- Babel -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- qrcodejs officiel pour un QR Code 100% lisible par tous les téléphones -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans select-none">
   <div id="root"></div>
@@ -21,60 +24,32 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // --- GÉNÉRATEUR DE QR CODE MATRICIEL ROBUSTE ---
+    // --- COMPOSANT QR CODE AVEC LA LIBRAIRIE OFFICIELLE ---
     const QRCodeCanvas = ({ value, size = 180 }) => {
-      const canvasRef = useRef(null);
+      const containerRef = useRef(null);
 
       useEffect(() => {
-        if (!canvasRef.current) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        const modules = 21;
-        const cellSize = size / modules;
+        if (!containerRef.current) return;
+        containerRef.current.innerHTML = "";
         
-        ctx.clearRect(0, 0, size, size);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, size, size);
-        
-        let hash = 0;
-        for (let i = 0; i < value.length; i++) {
-          hash = (hash << 5) - hash + value.charCodeAt(i);
-          hash |= 0;
-        }
-        
-        ctx.fillStyle = '#000000';
-        
-        const drawFinderPattern = (x, y) => {
-          ctx.fillRect(x * cellSize, y * cellSize, 7 * cellSize, 7 * cellSize);
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect((x + 1) * cellSize, (y + 1) * cellSize, 5 * cellSize, 5 * cellSize);
-          ctx.fillStyle = '#000000';
-          ctx.fillRect((x + 2) * cellSize, (y + 2) * cellSize, 3 * cellSize, 3 * cellSize);
-        };
-
-        drawFinderPattern(0, 0);
-        drawFinderPattern(14, 0);
-        drawFinderPattern(0, 14);
-
-        for (let r = 0; r < modules; r++) {
-          for (let c = 0; c < modules; c++) {
-            if ((r < 8 && c < 8) || (r < 8 && c > 12) || (r > 12 && c < 8)) continue;
-            const pseudoBit = Math.abs(Math.sin(r * 12.9898 + c * 78.233 + hash) * 43758.5453) % 1 > 0.45;
-            if (pseudoBit) {
-              ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
-            }
-          }
-        }
+        new QRCode(containerRef.current, {
+          text: value || window.location.href,
+          width: size,
+          height: size,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
       }, [value, size]);
 
       return (
         <div className="p-3 bg-white rounded-xl shadow-2xl inline-block border-4 border-indigo-500/30">
-          <canvas ref={canvasRef} width={size} height={size} className="block" />
+          <div ref={containerRef} className="block" />
         </div>
       );
     };
 
-    // --- SON NATIF AUDIO ---
+    // --- SYNTHÉTISEUR AUDIO NATIVE ---
     const playSound = (type) => {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -95,6 +70,7 @@
       } catch (e) {}
     };
 
+    // BANQUE DE QUESTIONS (Valeurs de 0 à 1000)
     const QUESTIONS_DATABASE = [
       { text: "La hauteur de la Tour Eiffel (en mètres)", value: 330 },
       { text: "Le nombre de pages dans un roman moyen", value: 350 },
@@ -125,17 +101,17 @@
         {
           id: 1, name: "Équipe Bleue", color: "bg-blue-600", borderColor: "border-blue-500", textColor: "text-blue-400", hand: [],
           powers: [
-            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à votre carte.', used: false },
-            { id: 'change', name: 'Changer', desc: 'Défausse une carte et en pioche une nouvelle.', used: false },
-            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément.', used: false }
+            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à la valeur de votre carte.', used: false },
+            { id: 'change', name: 'Changer', desc: 'Défausse une de vos cartes pour en piocher une nouvelle.', used: false },
+            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément (somme ou différence).', used: false }
           ], selectedCard: null, activePowerEffect: null
         },
         {
           id: 2, name: "Équipe Rouge", color: "bg-red-600", borderColor: "border-red-500", textColor: "text-red-400", hand: [],
           powers: [
-            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à votre carte.', used: false },
-            { id: 'change', name: 'Changer', desc: 'Défausse une carte et en pioche une nouvelle.', used: false },
-            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément.', used: false }
+            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à la valeur de votre carte.', used: false },
+            { id: 'change', name: 'Changer', desc: 'Défausse une de vos cartes pour en piocher une nouvelle.', used: false },
+            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément (somme ou différence).', used: false }
           ], selectedCard: null, activePowerEffect: null
         }
       ]);
@@ -149,7 +125,7 @@
         const shuffled = [...QUESTIONS_DATABASE].sort(() => Math.random() - 0.5);
         setDeck(shuffled.slice(12));
         setTargetValue(500);
-        setPhase('lobby'); // Reviens sur l'écran d'accueil avec le QR Code
+        setPhase('lobby'); // Affiche le QR code au départ
         setRoundResults(null);
         setTeams(prev => [
           { ...prev[0], hand: shuffled.slice(0, 6), selectedCard: null, activePowerEffect: null, powers: prev[0].powers.map(p => ({ ...p, used: false })) },
@@ -158,7 +134,7 @@
       };
 
       const startGame = () => {
-        setPhase('selection');
+        setPhase('selection'); // Cacher le QR Code et passer sur la table de jeu
       };
 
       const handleSelectCard = (teamId, card) => {
@@ -184,13 +160,13 @@
         const winnerId = diff1 <= diff2 ? 1 : 2;
         const loserId = winnerId === 1 ? 2 : 1;
 
-        // Pause de 2 secondes avant l'animation
+        // Pause de 2 secondes avant l'animation de résultat
         setTimeout(() => {
           setPhase('animating');
           playSound('success');
           setRoundResults({ val1, val2, winnerId, loserId });
 
-          // Règle officielle : La carte la PLUS ÉLOIGNÉE devient la nouvelle cible !
+          // Règle officielle : la carte la PLUS ÉLOIGNÉE devient la nouvelle cible !
           setTimeout(() => {
             const loserValue = loserId === 1 ? val1 : val2;
             setTargetValue(loserValue);
@@ -229,21 +205,21 @@
 
       return (
         <div className="min-h-screen flex flex-col justify-between">
-          {/* HEADER */}
+          {/* BARRE DE NAVIGATION ET CHOIX DE MODE */}
           <header className="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center shadow-lg">
             <span className="text-xl font-black text-amber-400">0 À 1000</span>
             <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button onClick={() => setViewMode('tv')} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${viewMode === 'tv' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>TV Hôte</button>
+              <button onClick={() => setViewMode('tv')} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${viewMode === 'tv' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Écran TV Hôte</button>
               <button onClick={() => setViewMode('mobile')} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${viewMode === 'mobile' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Smartphone</button>
             </div>
-            <button onClick={initGame} title="Réinitialiser" className="p-2 bg-slate-800 text-slate-300 rounded-lg">🔄</button>
+            <button onClick={initGame} title="Réinitialiser" className="p-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">🔄</button>
           </header>
 
-          {/* MODE TV */}
+          {/* VUE ÉCRAN TV */}
           {viewMode === 'tv' && (
             <main className="flex-1 flex flex-col justify-between p-6 gap-6">
               
-              {/* TABLEAU DE BORD DES ÉQUIPES */}
+              {/* CARTES ET POUVOIRS DES ÉQUIPES (VUE TV) */}
               <div className="grid grid-cols-2 gap-8">
                 {teams.map(t => (
                   <div key={t.id} className={`p-4 rounded-2xl bg-slate-900 border-2 ${t.borderColor} flex justify-between items-center`}>
@@ -260,16 +236,15 @@
                 ))}
               </div>
 
-              {/* ZONE CENTRALE : ACCUEIL / LOBBY (AVEC QR CODE) OU PLATEAU DE JEU (SANS QR CODE) */}
+              {/* ZONE CENTRALE : LOBBY AVEC QR CODE OU CARTE CIBLE DE JEU */}
               <div className="flex items-center justify-center gap-12">
-                
-                {/* 1. ÉCRAN D'ACCUEIL : QR CODE VISIBLE AVANT DE LANCER LA PARTIE */}
                 {phase === 'lobby' ? (
+                  /* 1. LOBBY : AFFICHAGE DU QR CODE POUR TOUT LE MONDE */
                   <div className="flex flex-col items-center gap-6 bg-slate-900/90 p-8 rounded-3xl border border-slate-800 shadow-2xl max-w-md w-full">
                     <h2 className="text-xl font-bold text-white text-center">Rejoindre la partie</h2>
-                    <QRCodeCanvas value={appUrl || 'https://github.com'} size={200} />
+                    <QRCodeCanvas value={appUrl} size={180} />
                     <p className="text-xs text-slate-400 text-center">
-                      Scannez le QR Code avec votre smartphone pour prendre les commandes !
+                      Scannez le QR Code depuis vos téléphones pour piloter vos cartes !
                     </p>
                     <button 
                       onClick={startGame}
@@ -279,7 +254,7 @@
                     </button>
                   </div>
                 ) : (
-                  /* 2. EN JEU : LE QR CODE DISPARAÎT ET LA CARTE CIBLE RESTE SEULE AU CENTRE */
+                  /* 2. JEU : LE QR CODE DISPARAÎT ET LA CARTE CIBLE EST AU CENTRE */
                   <div className="flex flex-col items-center gap-6">
                     <div className="w-80 h-52 bg-white rounded-2xl p-3 shadow-2xl border-4 border-slate-200">
                       <div className="w-full h-full rounded-xl bg-gradient-to-br from-indigo-900 via-blue-700 to-purple-900 flex items-center justify-center relative overflow-hidden">
@@ -292,7 +267,7 @@
                         <button onClick={triggerReveal} className="w-full py-3 px-6 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl shadow-lg">RÉVÉLER LES CARTES !</button>
                       )}
                       {phase === 'selection' && (!teams[0].selectedCard || !teams[1].selectedCard) && (
-                        <span className="text-sm text-slate-400 animate-pulse">En attente des sélections sur mobile...</span>
+                        <span className="text-sm text-slate-400 animate-pulse">Sélectionnez vos cartes sur les mobiles...</span>
                       )}
                       {(phase === 'revealed' || phase === 'animating') && (
                         <span className="text-sm text-indigo-400 font-bold animate-pulse">Révélation en cours...</span>
@@ -300,10 +275,9 @@
                     </div>
                   </div>
                 )}
-
               </div>
 
-              {/* ZONE DE RÉVÉLATION DE FIN DE MANCHE */}
+              {/* RÉSULTAT ET ANIMATION DE FIN DE MANCHE SUR TV */}
               {phase !== 'lobby' && (
                 <div className="grid grid-cols-2 gap-8">
                   {teams.map(t => {
@@ -335,7 +309,7 @@
             </main>
           )}
 
-          {/* MODE SMARTPHONE */}
+          {/* VUE SMARTPHONE */}
           {viewMode === 'mobile' && (
             <main className="flex-1 flex flex-col p-4 max-w-md mx-auto w-full gap-5">
               <div className="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800">
@@ -382,7 +356,7 @@
             </main>
           )}
 
-          {/* MODALES */}
+          {/* MODALE D'INFORMATIONS DU POUVOIR */}
           {selectedPowerForInfo && (
             <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full">
@@ -393,6 +367,7 @@
             </div>
           )}
 
+          {/* MODALE DE CONFIRMATION DE POUVOIR */}
           {powerToConfirm && (
             <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full">
