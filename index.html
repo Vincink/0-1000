@@ -12,13 +12,22 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 
-  <!-- Babel -->
+  <!-- Babel pour compiler le JSX dans le navigateur -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- qrcodejs officiel pour un QR Code 100% lisible par tous les téléphones -->
+  <!-- qrcodejs officiel pour un QR code 100% lisible sur smartphone -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Import de la police Cartoon Fredoka pour les chiffres dynamiques -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans select-none">
+<body class="bg-slate-950 text-slate-100 font-sans select-none overflow-hidden">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -43,7 +52,7 @@
       }, [value, size]);
 
       return (
-        <div className="p-3 bg-white rounded-xl shadow-2xl inline-block border-4 border-indigo-500/30">
+        <div className="p-3 bg-white rounded-2xl shadow-2xl inline-block border-4 border-amber-400">
           <div ref={containerRef} className="block" />
         </div>
       );
@@ -70,7 +79,7 @@
       } catch (e) {}
     };
 
-    // BANQUE DE QUESTIONS (Valeurs de 0 à 1000)
+    // BANQUE DE QUESTIONS
     const QUESTIONS_DATABASE = [
       { text: "La hauteur de la Tour Eiffel (en mètres)", value: 330 },
       { text: "Le nombre de pages dans un roman moyen", value: 350 },
@@ -101,17 +110,17 @@
         {
           id: 1, name: "Équipe Bleue", color: "bg-blue-600", borderColor: "border-blue-500", textColor: "text-blue-400", hand: [],
           powers: [
-            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à la valeur de votre carte.', used: false },
-            { id: 'change', name: 'Changer', desc: 'Défausse une de vos cartes pour en piocher une nouvelle.', used: false },
-            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément (somme ou différence).', used: false }
+            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à votre carte.', used: false },
+            { id: 'change', name: 'Changer', desc: 'Défausse une carte et en pioche une nouvelle.', used: false },
+            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément.', used: false }
           ], selectedCard: null, activePowerEffect: null
         },
         {
           id: 2, name: "Équipe Rouge", color: "bg-red-600", borderColor: "border-red-500", textColor: "text-red-400", hand: [],
           powers: [
-            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à la valeur de votre carte.', used: false },
-            { id: 'change', name: 'Changer', desc: 'Défausse une de vos cartes pour en piocher une nouvelle.', used: false },
-            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément (somme ou différence).', used: false }
+            { id: 'p200', name: '+200 / -200', desc: 'Ajoute ou soustrait 200 à votre carte.', used: false },
+            { id: 'change', name: 'Changer', desc: 'Défausse une carte et en pioche une nouvelle.', used: false },
+            { id: 'double', name: 'Double Carte', desc: 'Jouez 2 cartes simultanément.', used: false }
           ], selectedCard: null, activePowerEffect: null
         }
       ]);
@@ -125,7 +134,7 @@
         const shuffled = [...QUESTIONS_DATABASE].sort(() => Math.random() - 0.5);
         setDeck(shuffled.slice(12));
         setTargetValue(500);
-        setPhase('lobby'); // Affiche le QR code au départ
+        setPhase('lobby');
         setRoundResults(null);
         setTeams(prev => [
           { ...prev[0], hand: shuffled.slice(0, 6), selectedCard: null, activePowerEffect: null, powers: prev[0].powers.map(p => ({ ...p, used: false })) },
@@ -134,7 +143,7 @@
       };
 
       const startGame = () => {
-        setPhase('selection'); // Cacher le QR Code et passer sur la table de jeu
+        setPhase('selection');
       };
 
       const handleSelectCard = (teamId, card) => {
@@ -160,13 +169,13 @@
         const winnerId = diff1 <= diff2 ? 1 : 2;
         const loserId = winnerId === 1 ? 2 : 1;
 
-        // Pause de 2 secondes avant l'animation de résultat
+        // Pause de 2 secondes avant l'animation
         setTimeout(() => {
           setPhase('animating');
           playSound('success');
           setRoundResults({ val1, val2, winnerId, loserId });
 
-          // Règle officielle : la carte la PLUS ÉLOIGNÉE devient la nouvelle cible !
+          // La carte la plus éloignée devient la nouvelle cible
           setTimeout(() => {
             const loserValue = loserId === 1 ? val1 : val2;
             setTargetValue(loserValue);
@@ -204,115 +213,194 @@
       };
 
       return (
-        <div className="min-h-screen flex flex-col justify-between">
-          {/* BARRE DE NAVIGATION ET CHOIX DE MODE */}
-          <header className="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center shadow-lg">
-            <span className="text-xl font-black text-amber-400">0 À 1000</span>
+        <div className="w-screen h-screen relative bg-slate-950 text-slate-100 flex flex-col justify-between">
+          
+          {/* FOND DE SCÈNE AFFINITY DESIGNER */}
+          <img 
+            src="assets/Fond.svg"
+            alt="Fond Plateau" 
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          />
+
+          {/* BARRE DU HAUT : SEULEMENT visible au survol ou pour commuter TV/MOBILE */}
+          <header className="relative z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/50 p-2 flex justify-between items-center opacity-40 hover:opacity-100 transition">
+            <span className="text-lg font-black text-amber-400">0 À 1000</span>
             <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button onClick={() => setViewMode('tv')} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${viewMode === 'tv' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Écran TV Hôte</button>
-              <button onClick={() => setViewMode('mobile')} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${viewMode === 'mobile' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Smartphone</button>
+              <button onClick={() => setViewMode('tv')} className={`px-3 py-1 rounded-lg text-xs font-medium ${viewMode === 'tv' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>TV Hôte</button>
+              <button onClick={() => setViewMode('mobile')} className={`px-3 py-1 rounded-lg text-xs font-medium ${viewMode === 'mobile' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Smartphone</button>
             </div>
-            <button onClick={initGame} title="Réinitialiser" className="p-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">🔄</button>
+            <button onClick={initGame} title="Réinitialiser" className="p-1.5 bg-slate-800 text-slate-300 rounded-lg">🔄</button>
           </header>
 
-          {/* VUE ÉCRAN TV */}
+          {/* ========================================================= */}
+          {/* VUE ÉCRAN TV (HABILLAGE VECTORIEL AFFINITY DESIGNER 2) */}
+          {/* ========================================================= */}
           {viewMode === 'tv' && (
-            <main className="flex-1 flex flex-col justify-between p-6 gap-6">
+            <main className="relative z-10 flex-1 flex flex-col justify-between p-6">
               
-              {/* CARTES ET POUVOIRS DES ÉQUIPES (VUE TV) */}
-              <div className="grid grid-cols-2 gap-8">
-                {teams.map(t => (
-                  <div key={t.id} className={`p-4 rounded-2xl bg-slate-900 border-2 ${t.borderColor} flex justify-between items-center`}>
-                    <div>
-                      <h2 className={`text-xl font-bold ${t.textColor}`}>{t.name}</h2>
-                      <p className="text-slate-400 text-sm">Cartes restantes : <strong className="text-white text-lg">{t.hand.length}</strong></p>
+              {/* EN-TÊTE ÉQUIPES : BANNIÈRES + COMPTEURS + POUVOIRS */}
+              <div className="grid grid-cols-2 gap-12 px-6">
+                
+                {/* ÉQUIPE BLEUE */}
+                <div className="flex flex-col items-start gap-2">
+                  <div className="relative w-64 h-14 flex items-center justify-center">
+                    <img src="assets/nom bleu.svg" className="absolute inset-0 w-full h-full object-contain" />
+                    <span className="relative z-10 font-black text-xl text-white drop-shadow">{teams[0].name}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-40 h-10 flex items-center justify-center">
+                      <img src="assets/info cartes.svg" className="absolute inset-0 w-full h-full object-contain" />
+                      <span className="relative z-10 font-bold text-sm text-slate-900">{teams[0].hand.length} cartes</span>
                     </div>
-                    <div className="flex gap-2">
-                      {t.powers.map(p => (
-                        <div key={p.id} className={`w-9 h-11 rounded-lg border flex items-center justify-center font-bold text-xs ${p.used ? 'bg-slate-800 text-slate-600 opacity-40 line-through' : 'bg-amber-400 text-amber-950'}`}>⚡</div>
-                      ))}
+                    
+                    {/* CARTE POUVOIR INTEGRÉE */}
+                    <img 
+                      src="assets/Pouvoir.svg" 
+                      className={`h-12 object-contain transition ${teams[0].powers.every(p => p.used) ? 'opacity-30 grayscale' : ''}`} 
+                    />
+                  </div>
+                </div>
+
+                {/* ÉQUIPE ROUGE */}
+                <div className="flex flex-col items-end gap-2">
+                  <div className="relative w-64 h-14 flex items-center justify-center">
+                    <img src="assets/nom rouge.svg" className="absolute inset-0 w-full h-full object-contain" />
+                    <span className="relative z-10 font-black text-xl text-white drop-shadow">{teams[1].name}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <img 
+                      src="assets/Pouvoir.svg" 
+                      className={`h-12 object-contain transition ${teams[1].powers.every(p => p.used) ? 'opacity-30 grayscale' : ''}`} 
+                    />
+
+                    <div className="relative w-40 h-10 flex items-center justify-center">
+                      <img src="assets/info cartes.svg" className="absolute inset-0 w-full h-full object-contain" />
+                      <span className="relative z-10 font-bold text-sm text-slate-900">{teams[1].hand.length} cartes</span>
                     </div>
                   </div>
-                ))}
+                </div>
+
               </div>
 
-              {/* ZONE CENTRALE : LOBBY AVEC QR CODE OU CARTE CIBLE DE JEU */}
-              <div className="flex items-center justify-center gap-12">
+              {/* CENTRE DU PLATEAU TV : LOBBY QR CODE OU CARTE CIBLE AFFINITY */}
+              <div className="flex items-center justify-center my-auto relative">
+                
                 {phase === 'lobby' ? (
-                  /* 1. LOBBY : AFFICHAGE DU QR CODE POUR TOUT LE MONDE */
-                  <div className="flex flex-col items-center gap-6 bg-slate-900/90 p-8 rounded-3xl border border-slate-800 shadow-2xl max-w-md w-full">
-                    <h2 className="text-xl font-bold text-white text-center">Rejoindre la partie</h2>
-                    <QRCodeCanvas value={appUrl} size={180} />
-                    <p className="text-xs text-slate-400 text-center">
-                      Scannez le QR Code depuis vos téléphones pour piloter vos cartes !
-                    </p>
+                  /* PHASE LOBBY : QR CODE SUR LA TV AU DÉMARRAGE */
+                  <div className="flex flex-col items-center gap-4 bg-slate-900/90 backdrop-blur-md p-6 rounded-3xl border-4 border-amber-400 shadow-2xl z-30">
+                    <h2 className="text-xl font-black text-amber-400">CONNEXION SMARTPHONES</h2>
+                    <QRCodeCanvas value={appUrl} size={190} />
                     <button 
                       onClick={startGame}
-                      className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-amber-950 font-black text-lg rounded-2xl shadow-xl transition transform active:scale-95"
+                      className="mt-2 py-3 px-8 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 font-black text-lg rounded-xl shadow-xl transition transform active:scale-95"
                     >
                       LANCER LA PARTIE ▶
                     </button>
                   </div>
                 ) : (
-                  /* 2. JEU : LE QR CODE DISPARAÎT ET LA CARTE CIBLE EST AU CENTRE */
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="w-80 h-52 bg-white rounded-2xl p-3 shadow-2xl border-4 border-slate-200">
-                      <div className="w-full h-full rounded-xl bg-gradient-to-br from-indigo-900 via-blue-700 to-purple-900 flex items-center justify-center relative overflow-hidden">
-                        <span className="text-7xl font-black text-white drop-shadow-[0_8px_0_rgba(0,0,0,0.8)] z-10">{targetValue}</span>
-                      </div>
+                  /* PHASE DE JEU : CARTE CIBLE VECTORIELLE AFFINITY (SANS QR CODE) */
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative w-96 h-60 flex items-center justify-center drop-shadow-2xl">
+                      <img src="assets/cartes cible.svg" className="absolute inset-0 w-full h-full object-contain" />
+                      {/* Chiffre de la Cible surimposé au centre */}
+                      <span className="relative z-10 text-8xl font-black text-white drop-shadow-[0_8px_0_rgba(0,0,0,0.8)]">
+                        {targetValue}
+                      </span>
                     </div>
 
-                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 min-w-[240px] text-center">
-                      {phase === 'selection' && teams[0].selectedCard && teams[1].selectedCard && (
-                        <button onClick={triggerReveal} className="w-full py-3 px-6 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl shadow-lg">RÉVÉLER LES CARTES !</button>
-                      )}
-                      {phase === 'selection' && (!teams[0].selectedCard || !teams[1].selectedCard) && (
-                        <span className="text-sm text-slate-400 animate-pulse">Sélectionnez vos cartes sur les mobiles...</span>
-                      )}
-                      {(phase === 'revealed' || phase === 'animating') && (
-                        <span className="text-sm text-indigo-400 font-bold animate-pulse">Révélation en cours...</span>
-                      )}
-                    </div>
+                    {/* Bouton pour déclencher la révélation */}
+                    {phase === 'selection' && teams[0].selectedCard && teams[1].selectedCard && (
+                      <button 
+                        onClick={triggerReveal} 
+                        className="py-3 px-8 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xl rounded-2xl shadow-2xl border-2 border-amber-200 transform active:scale-95 transition"
+                      >
+                        RÉVÉLER LES CARTES !
+                      </button>
+                    )}
                   </div>
                 )}
+
               </div>
 
-              {/* RÉSULTAT ET ANIMATION DE FIN DE MANCHE SUR TV */}
-              {phase !== 'lobby' && (
-                <div className="grid grid-cols-2 gap-8">
-                  {teams.map(t => {
-                    const isWinner = roundResults?.winnerId === t.id;
-                    const isLoser = roundResults?.loserId === t.id;
-                    return (
-                      <div key={t.id} className="flex flex-col items-center">
-                        <div className="text-sm font-bold text-slate-400 mb-2">{t.name}</div>
-                        <div className={`relative w-full max-w-md h-36 rounded-2xl p-4 border-4 transition-all duration-700 flex flex-col justify-between bg-slate-900 border-slate-700 ${phase === 'animating' && isWinner ? 'scale-110 border-green-500 shadow-green-500/50 ring-4 ring-green-500/30' : ''} ${phase === 'animating' && isLoser ? 'scale-90 border-red-500 opacity-80' : ''}`}>
-                          {t.selectedCard ? (
-                            <>
-                              <p className="text-sm text-slate-200">{t.selectedCard.text}</p>
-                              <div className="text-right text-3xl font-black text-amber-400">
-                                {phase === 'selection' ? '❓' : t.selectedCard.value}
-                              </div>
-                              {phase === 'animating' && isWinner && <div className="absolute inset-0 bg-green-950/50 rounded-xl flex items-center justify-center text-5xl">✅</div>}
-                              {phase === 'animating' && isLoser && <div className="absolute inset-0 bg-red-950/50 rounded-xl flex items-center justify-center text-5xl">❌</div>}
-                            </>
-                          ) : (
-                            <div className="h-full flex items-center justify-center text-slate-600 text-sm">En attente...</div>
-                          )}
+              {/* ZONE DU BAS : PLACEMENT ET RÉVÉLATION DES CARTES D'ÉQUIPES */}
+              <div className="grid grid-cols-2 gap-12 px-6">
+                
+                {/* CARTE ÉQUIPE BLEUE */}
+                <div className="flex flex-col items-center">
+                  <div className={`relative w-80 h-44 flex items-center justify-center transition-all duration-700 ${
+                    phase === 'animating' && roundResults?.winnerId === 1 ? 'scale-110' : ''
+                  } ${
+                    phase === 'animating' && roundResults?.loserId === 1 ? 'scale-90 opacity-80' : ''
+                  }`}>
+                    <img src="assets/Partie bleu.svg" className="absolute inset-0 w-full h-full object-contain" />
+                    
+                    {teams[0].selectedCard ? (
+                      <div className="relative z-10 p-4 text-center">
+                        <p className="text-xs text-slate-800 font-bold mb-2">{teams[0].selectedCard.text}</p>
+                        <div className="text-4xl font-black text-blue-900">
+                          {phase === 'selection' ? '❓' : teams[0].selectedCard.value}
                         </div>
                       </div>
-                    );
-                  })}
+                    ) : (
+                      <span className="relative z-10 text-xs text-slate-500 font-bold">En attente...</span>
+                    )}
+
+                    {/* COCHE VERTE SUR LA PLUS PROCHE */}
+                    {phase === 'animating' && roundResults?.winnerId === 1 && (
+                      <img src="assets/vrai.svg" className="absolute z-30 w-24 h-24 drop-shadow-xl animate-in zoom-in-50" />
+                    )}
+                    {/* CROIX ROUGE SUR LA PLUS ÉLOIGNÉE */}
+                    {phase === 'animating' && roundResults?.loserId === 1 && (
+                      <img src="assets/Faux.svg" className="absolute z-30 w-24 h-24 drop-shadow-xl animate-in zoom-in-50" />
+                    )}
+                  </div>
                 </div>
-              )}
+
+                {/* CARTE ÉQUIPE ROUGE */}
+                <div className="flex flex-col items-center">
+                  <div className={`relative w-80 h-44 flex items-center justify-center transition-all duration-700 ${
+                    phase === 'animating' && roundResults?.winnerId === 2 ? 'scale-110' : ''
+                  } ${
+                    phase === 'animating' && roundResults?.loserId === 2 ? 'scale-90 opacity-80' : ''
+                  }`}>
+                    <img src="assets/Partie Rouge.svg" className="absolute inset-0 w-full h-full object-contain" />
+                    
+                    {teams[1].selectedCard ? (
+                      <div className="relative z-10 p-4 text-center">
+                        <p className="text-xs text-slate-800 font-bold mb-2">{teams[1].selectedCard.text}</p>
+                        <div className="text-4xl font-black text-red-900">
+                          {phase === 'selection' ? '❓' : teams[1].selectedCard.value}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="relative z-10 text-xs text-slate-500 font-bold">En attente...</span>
+                    )}
+
+                    {/* COCHE VERTE SUR LA PLUS PROCHE */}
+                    {phase === 'animating' && roundResults?.winnerId === 2 && (
+                      <img src="assets/vrai.svg" className="absolute z-30 w-24 h-24 drop-shadow-xl animate-in zoom-in-50" />
+                    )}
+                    {/* CROIX ROUGE SUR LA PLUS ÉLOIGNÉE */}
+                    {phase === 'animating' && roundResults?.loserId === 2 && (
+                      <img src="assets/Faux.svg" className="absolute z-30 w-24 h-24 drop-shadow-xl animate-in zoom-in-50" />
+                    )}
+                  </div>
+                </div>
+
+              </div>
 
             </main>
           )}
 
-          {/* VUE SMARTPHONE */}
+          {/* ========================================================= */}
+          {/* VUE SMARTPHONE (MANETTE DE JEU MOBILE) */}
+          {/* ========================================================= */}
           {viewMode === 'mobile' && (
-            <main className="flex-1 flex flex-col p-4 max-w-md mx-auto w-full gap-5">
-              <div className="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+            <main className="relative z-10 flex-1 flex flex-col p-4 max-w-md mx-auto w-full justify-between">
+              
+              <div className="flex bg-slate-900/90 p-1.5 rounded-xl border border-slate-800 shadow-xl">
                 {teams.map(t => (
                   <button key={t.id} onClick={() => setActiveTeamId(t.id)} className={`flex-1 py-2 text-xs font-bold rounded-lg ${activeTeamId === t.id ? `${t.color} text-white` : 'text-slate-400'}`}>
                     {t.name}
@@ -324,14 +412,14 @@
                 const t = teams.find(team => team.id === activeTeamId);
                 if (!t) return null;
                 return (
-                  <div className="flex-1 flex flex-col justify-between gap-4">
+                  <div className="flex-1 flex flex-col justify-between my-4 gap-4">
                     <div className="grid grid-cols-2 gap-3">
                       {t.hand.map((card, idx) => {
                         const isSelected = t.selectedCard?.text === card.text;
                         return (
-                          <div key={idx} onClick={() => handleSelectCard(t.id, card)} className={`p-3 rounded-xl border-2 h-28 flex flex-col justify-between cursor-pointer ${isSelected ? 'bg-amber-950/40 border-amber-400' : 'bg-slate-900 border-slate-800'}`}>
-                            <p className="text-xs text-slate-200">{card.text}</p>
-                            {isSelected && <span className="text-right text-amber-400 text-xs font-bold">Sélectionnée ✓</span>}
+                          <div key={idx} onClick={() => handleSelectCard(t.id, card)} className={`p-3 rounded-2xl border-2 h-28 flex flex-col justify-between cursor-pointer transition ${isSelected ? 'bg-amber-400 border-white text-slate-950 font-bold shadow-lg scale-105' : 'bg-slate-900/90 border-slate-700 text-slate-200'}`}>
+                            <p className="text-xs">{card.text}</p>
+                            {isSelected && <span className="text-right text-xs font-black">Sélectionnée ✓</span>}
                           </div>
                         );
                       })}
@@ -342,7 +430,7 @@
                         <div key={p.id} className="flex flex-col gap-1">
                           <div onClick={() => setSelectedPowerForInfo(p)} className={`p-2 rounded-xl border h-20 flex flex-col justify-between cursor-pointer ${p.used ? 'bg-slate-900 border-slate-800 text-slate-600 opacity-40' : 'bg-amber-400 text-amber-950 border-amber-300 font-bold'}`}>
                             <span className="text-[10px] uppercase">Pouvoir</span>
-                            <span className="text-xs">{p.name}</span>
+                            <span className="text-xs leading-tight">{p.name}</span>
                           </div>
                           <button disabled={p.used} onClick={() => setPowerToConfirm({ teamId: t.id, powerId: p.id })} className={`py-1 text-[11px] font-bold rounded-lg ${p.used ? 'bg-slate-900 text-slate-600' : 'bg-indigo-600 text-white'}`}>
                             {p.used ? 'Utilisé' : 'Utiliser'}
