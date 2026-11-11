@@ -12,11 +12,8 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   
-  <!-- Babel pour compiler le JSX directement dans le navigateur -->
+  <!-- Babel pour compiler le JSX dans le navigateur -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans select-none">
   <div id="root"></div>
@@ -24,7 +21,7 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // --- GÉNÉRATEUR QR CODE MATRICIEL ROBUSTE ---
+    // --- GÉNÉRATEUR DE QR CODE MATRICIEL ROBUSTE ---
     const QRCodeCanvas = ({ value, size = 180 }) => {
       const canvasRef = useRef(null);
 
@@ -94,14 +91,6 @@
           gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
           osc.start();
           osc.stop(ctx.currentTime + 0.4);
-        } else if (type === 'fail') {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(300, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.3);
-          gain.gain.setValueAtTime(0.3, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.3);
         }
       } catch (e) {}
     };
@@ -127,7 +116,7 @@
       const [appUrl, setAppUrl] = useState('');
       const [targetValue, setTargetValue] = useState(500);
       const [deck, setDeck] = useState([]);
-      const [phase, setPhase] = useState('selection');
+      const [phase, setPhase] = useState('lobby'); // 'lobby', 'selection', 'revealed', 'animating'
       const [roundResults, setRoundResults] = useState(null);
       const [selectedPowerForInfo, setSelectedPowerForInfo] = useState(null);
       const [powerToConfirm, setPowerToConfirm] = useState(null);
@@ -160,12 +149,16 @@
         const shuffled = [...QUESTIONS_DATABASE].sort(() => Math.random() - 0.5);
         setDeck(shuffled.slice(12));
         setTargetValue(500);
-        setPhase('selection');
+        setPhase('lobby'); // Reviens sur l'écran d'accueil avec le QR Code
         setRoundResults(null);
         setTeams(prev => [
           { ...prev[0], hand: shuffled.slice(0, 6), selectedCard: null, activePowerEffect: null, powers: prev[0].powers.map(p => ({ ...p, used: false })) },
           { ...prev[1], hand: shuffled.slice(6, 12), selectedCard: null, activePowerEffect: null, powers: prev[1].powers.map(p => ({ ...p, used: false })) }
         ]);
+      };
+
+      const startGame = () => {
+        setPhase('selection');
       };
 
       const handleSelectCard = (teamId, card) => {
@@ -197,7 +190,7 @@
           playSound('success');
           setRoundResults({ val1, val2, winnerId, loserId });
 
-          // Résolution de manche après l'animation
+          // Règle officielle : La carte la PLUS ÉLOIGNÉE devient la nouvelle cible !
           setTimeout(() => {
             const loserValue = loserId === 1 ? val1 : val2;
             setTargetValue(loserValue);
@@ -243,12 +236,14 @@
               <button onClick={() => setViewMode('tv')} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${viewMode === 'tv' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>TV Hôte</button>
               <button onClick={() => setViewMode('mobile')} className={`px-4 py-1.5 rounded-lg text-sm font-medium ${viewMode === 'mobile' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Smartphone</button>
             </div>
-            <button onClick={initGame} className="p-2 bg-slate-800 text-slate-300 rounded-lg">🔄</button>
+            <button onClick={initGame} title="Réinitialiser" className="p-2 bg-slate-800 text-slate-300 rounded-lg">🔄</button>
           </header>
 
           {/* MODE TV */}
           {viewMode === 'tv' && (
             <main className="flex-1 flex flex-col justify-between p-6 gap-6">
+              
+              {/* TABLEAU DE BORD DES ÉQUIPES */}
               <div className="grid grid-cols-2 gap-8">
                 {teams.map(t => (
                   <div key={t.id} className={`p-4 rounded-2xl bg-slate-900 border-2 ${t.borderColor} flex justify-between items-center`}>
@@ -265,58 +260,78 @@
                 ))}
               </div>
 
-              <div className="flex items-center justify-around">
-                <div className="flex flex-col items-center gap-2 bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                  <QRCodeCanvas value={appUrl || 'https://github.com'} size={140} />
-                  <p className="text-xs text-slate-300">Scannez pour rejoindre</p>
-                </div>
-
-                {/* CARTE CIBLE STYLE OFFICIEL */}
-                <div className="w-80 h-52 bg-white rounded-2xl p-3 shadow-2xl border-4 border-slate-200">
-                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-indigo-900 via-blue-700 to-purple-900 flex items-center justify-center relative overflow-hidden">
-                    <span className="text-7xl font-black text-white drop-shadow-[0_8px_0_rgba(0,0,0,0.8)] z-10">{targetValue}</span>
+              {/* ZONE CENTRALE : ACCUEIL / LOBBY (AVEC QR CODE) OU PLATEAU DE JEU (SANS QR CODE) */}
+              <div className="flex items-center justify-center gap-12">
+                
+                {/* 1. ÉCRAN D'ACCUEIL : QR CODE VISIBLE AVANT DE LANCER LA PARTIE */}
+                {phase === 'lobby' ? (
+                  <div className="flex flex-col items-center gap-6 bg-slate-900/90 p-8 rounded-3xl border border-slate-800 shadow-2xl max-w-md w-full">
+                    <h2 className="text-xl font-bold text-white text-center">Rejoindre la partie</h2>
+                    <QRCodeCanvas value={appUrl || 'https://github.com'} size={200} />
+                    <p className="text-xs text-slate-400 text-center">
+                      Scannez le QR Code avec votre smartphone pour prendre les commandes !
+                    </p>
+                    <button 
+                      onClick={startGame}
+                      className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-amber-950 font-black text-lg rounded-2xl shadow-xl transition transform active:scale-95"
+                    >
+                      LANCER LA PARTIE ▶
+                    </button>
                   </div>
-                </div>
-
-                <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 min-w-[200px] text-center">
-                  {phase === 'selection' && teams[0].selectedCard && teams[1].selectedCard && (
-                    <button onClick={triggerReveal} className="w-full py-3 px-6 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl shadow-lg">RÉVÉLER !</button>
-                  )}
-                  {phase === 'selection' && (!teams[0].selectedCard || !teams[1].selectedCard) && (
-                    <span className="text-sm text-slate-400 animate-pulse">En attente des sélections...</span>
-                  )}
-                  {(phase === 'revealed' || phase === 'animating') && (
-                    <span className="text-sm text-indigo-400 font-bold animate-pulse">Révélation...</span>
-                  )}
-                </div>
-              </div>
-
-              {/* ZONE REVELATION */}
-              <div className="grid grid-cols-2 gap-8">
-                {teams.map(t => {
-                  const isWinner = roundResults?.winnerId === t.id;
-                  const isLoser = roundResults?.loserId === t.id;
-                  return (
-                    <div key={t.id} className="flex flex-col items-center">
-                      <div className="text-sm font-bold text-slate-400 mb-2">{t.name}</div>
-                      <div className={`relative w-full max-w-md h-36 rounded-2xl p-4 border-4 transition-all duration-700 flex flex-col justify-between bg-slate-900 border-slate-700 ${phase === 'animating' && isWinner ? 'scale-110 border-green-500' : ''} ${phase === 'animating' && isLoser ? 'scale-90 border-red-500 opacity-80' : ''}`}>
-                        {t.selectedCard ? (
-                          <>
-                            <p className="text-sm text-slate-200">{t.selectedCard.text}</p>
-                            <div className="text-right text-3xl font-black text-amber-400">
-                              {phase === 'selection' ? '❓' : t.selectedCard.value}
-                            </div>
-                            {phase === 'animating' && isWinner && <div className="absolute inset-0 bg-green-950/50 rounded-xl flex items-center justify-center text-5xl">✅</div>}
-                            {phase === 'animating' && isLoser && <div className="absolute inset-0 bg-red-950/50 rounded-xl flex items-center justify-center text-5xl">❌</div>}
-                          </>
-                        ) : (
-                          <div className="h-full flex items-center justify-center text-slate-600 text-sm">En attente...</div>
-                        )}
+                ) : (
+                  /* 2. EN JEU : LE QR CODE DISPARAÎT ET LA CARTE CIBLE RESTE SEULE AU CENTRE */
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="w-80 h-52 bg-white rounded-2xl p-3 shadow-2xl border-4 border-slate-200">
+                      <div className="w-full h-full rounded-xl bg-gradient-to-br from-indigo-900 via-blue-700 to-purple-900 flex items-center justify-center relative overflow-hidden">
+                        <span className="text-7xl font-black text-white drop-shadow-[0_8px_0_rgba(0,0,0,0.8)] z-10">{targetValue}</span>
                       </div>
                     </div>
-                  );
-                })}
+
+                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 min-w-[240px] text-center">
+                      {phase === 'selection' && teams[0].selectedCard && teams[1].selectedCard && (
+                        <button onClick={triggerReveal} className="w-full py-3 px-6 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl shadow-lg">RÉVÉLER LES CARTES !</button>
+                      )}
+                      {phase === 'selection' && (!teams[0].selectedCard || !teams[1].selectedCard) && (
+                        <span className="text-sm text-slate-400 animate-pulse">En attente des sélections sur mobile...</span>
+                      )}
+                      {(phase === 'revealed' || phase === 'animating') && (
+                        <span className="text-sm text-indigo-400 font-bold animate-pulse">Révélation en cours...</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
               </div>
+
+              {/* ZONE DE RÉVÉLATION DE FIN DE MANCHE */}
+              {phase !== 'lobby' && (
+                <div className="grid grid-cols-2 gap-8">
+                  {teams.map(t => {
+                    const isWinner = roundResults?.winnerId === t.id;
+                    const isLoser = roundResults?.loserId === t.id;
+                    return (
+                      <div key={t.id} className="flex flex-col items-center">
+                        <div className="text-sm font-bold text-slate-400 mb-2">{t.name}</div>
+                        <div className={`relative w-full max-w-md h-36 rounded-2xl p-4 border-4 transition-all duration-700 flex flex-col justify-between bg-slate-900 border-slate-700 ${phase === 'animating' && isWinner ? 'scale-110 border-green-500 shadow-green-500/50 ring-4 ring-green-500/30' : ''} ${phase === 'animating' && isLoser ? 'scale-90 border-red-500 opacity-80' : ''}`}>
+                          {t.selectedCard ? (
+                            <>
+                              <p className="text-sm text-slate-200">{t.selectedCard.text}</p>
+                              <div className="text-right text-3xl font-black text-amber-400">
+                                {phase === 'selection' ? '❓' : t.selectedCard.value}
+                              </div>
+                              {phase === 'animating' && isWinner && <div className="absolute inset-0 bg-green-950/50 rounded-xl flex items-center justify-center text-5xl">✅</div>}
+                              {phase === 'animating' && isLoser && <div className="absolute inset-0 bg-red-950/50 rounded-xl flex items-center justify-center text-5xl">❌</div>}
+                            </>
+                          ) : (
+                            <div className="h-full flex items-center justify-center text-slate-600 text-sm">En attente...</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
             </main>
           )}
 
