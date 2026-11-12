@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>0 à 1000</title>
 
-  <!-- Génération QR Code & Communication Temps Réel WebRTC (PeerJS) -->
+  <!-- Base des 198 questions -->
+  <script src="questions.js"></script>
+
+  <!-- QR Code & Communication Temps Réel WebRTC (PeerJS) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
@@ -44,7 +47,7 @@
     }
 
     /* =========================================
-       MODE TV : PLATEAU 4K VERROUILLÉ
+       MODE TV : PLATEAU 4K (3840x2160)
        ========================================= */
     #tv-view {
       width: 100%;
@@ -89,7 +92,7 @@
       dominant-baseline: central;
     }
 
-    /* Texte de question sur la TV dans les cadres de révélation */
+    /* Texte seul de question sur la TV (sans cartesquestion.svg) */
     .tv-question-box {
       width: 100%;
       height: 100%;
@@ -97,51 +100,193 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 36px 54px;
+      padding: 20px 36px;
       text-align: center;
-      color: #0f172a;
+      color: #ffffff;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.75);
       font-family: 'MontserratCustom', sans-serif;
       font-weight: 700;
-      font-size: 46px;
+      font-size: 44px;
       line-height: 1.25;
+      gap: 10px;
     }
 
-    /* MODALE QR CODE TV */
-    .qr-overlay {
+    .tv-question-box.dual {
+      font-size: 34px;
+      line-height: 1.2;
+    }
+
+    .tv-power-tag {
+      background-color: #fbbf24;
+      color: #020617;
+      padding: 6px 20px;
+      border-radius: 999px;
+      font-size: 28px;
+      font-weight: 700;
+      text-shadow: none;
+    }
+
+    .tv-revealed-value {
+      font-family: 'BalloonDreams', sans-serif;
+      font-size: 165px;
+      fill: #fbbf24;
+      stroke: #0f172a;
+      stroke-width: 12px;
+      paint-order: stroke fill;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* Bouton Burger TV */
+    .tv-burger-btn {
       position: fixed;
-      inset: 0;
-      background-color: rgba(2, 6, 23, 0.85);
-      backdrop-filter: blur(8px);
+      top: 22px;
+      right: 26px;
+      width: 64px;
+      height: 64px;
+      background-color: rgba(15, 23, 42, 0.85);
+      border: 3px solid #fbbf24;
+      border-radius: 16px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      gap: 7px;
+      cursor: pointer;
+      z-index: 80;
     }
 
-    .qr-modal {
+    .tv-burger-btn span {
+      width: 34px;
+      height: 4px;
+      background-color: #fbbf24;
+      border-radius: 4px;
+    }
+
+    /* =========================================
+       MODALES GÉNÉRIQUES (TV & MOBILE)
+       ========================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(2, 6, 23, 0.86);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 120;
+    }
+
+    .modal-card {
       background-color: #0f172a;
-      border: 6px solid #fbbf24;
-      border-radius: 32px;
-      padding: 40px 50px;
+      border: 4px solid #fbbf24;
+      border-radius: 28px;
+      padding: 32px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 20px;
       text-align: center;
-      max-width: 90vw;
+      color: #f8fafc;
+      max-width: 680px;
+      width: 100%;
+      max-height: 88dvh;
+      overflow-y: auto;
     }
 
-    .qr-modal h2 {
+    .modal-card h2 {
       color: #fbbf24;
-      font-size: 36px;
+      font-size: 28px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+    }
+
+    .modal-card p {
+      font-size: 18px;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    .rules-list {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 16px;
+      line-height: 1.45;
+      color: #e2e8f0;
+      width: 100%;
+    }
+
+    .rules-list strong {
+      color: #fbbf24;
+    }
+
+    .modal-btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background-color: #fbbf24;
+      color: #020617;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 32px;
+      font-family: 'MontserratCustom', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      background-color: #1e293b;
+      color: #f8fafc;
+      border: 2px solid #475569;
+      border-radius: 16px;
+      padding: 16px 28px;
+      font-family: 'MontserratCustom', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background-color: #e11d48;
+      color: #ffffff;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 28px;
+      font-family: 'MontserratCustom', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .menu-stack-btn {
+      width: 100%;
+      padding: 18px 24px;
+      border-radius: 16px;
+      border: 2px solid #334155;
+      background-color: #1e293b;
+      color: #ffffff;
+      font-family: 'MontserratCustom', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .menu-stack-btn:active {
+      background-color: #334155;
     }
 
     .qr-box {
       background-color: #ffffff;
-      padding: 20px;
+      padding: 18px;
       border-radius: 20px;
       display: flex;
       align-items: center;
@@ -150,8 +295,10 @@
 
     .qr-status-row {
       display: flex;
-      gap: 20px;
-      font-size: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      font-size: 17px;
       font-weight: 700;
     }
 
@@ -175,20 +322,8 @@
       border-color: #ffffff;
     }
 
-    .start-btn {
-      background-color: #fbbf24;
-      color: #020617;
-      border: none;
-      border-radius: 16px;
-      padding: 18px 44px;
-      font-family: 'MontserratCustom', sans-serif;
-      font-size: 26px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
     /* =========================================
-       MODE MOBILE : PORTRAIT 1206x2622
+       MODE MOBILE : PORTRAIT (1206x2622)
        ========================================= */
     #mobile-view {
       display: none;
@@ -198,7 +333,6 @@
       background-color: #020617;
     }
 
-    /* Écran de sélection d'équipe */
     #team-select-screen {
       width: 100%;
       height: 100%;
@@ -207,7 +341,7 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      gap: 26px;
+      gap: 24px;
     }
 
     #team-select-screen h1 {
@@ -229,11 +363,6 @@
       font-weight: 700;
       color: #ffffff;
       cursor: pointer;
-      transition: opacity 0.2s ease, transform 0.1s ease;
-    }
-
-    .team-choice-btn:active:not(:disabled) {
-      transform: scale(0.96);
     }
 
     .team-choice-btn:disabled {
@@ -245,7 +374,6 @@
     .btn-blue { background-color: #0284c7; }
     .btn-red { background-color: #e11d48; }
 
-    /* Plateau Mobile verrouillé 1206x2622 */
     #player-board-screen {
       display: none;
       width: 100%;
@@ -263,7 +391,7 @@
     .mobile-counter-text {
       font-family: 'MontserratCustom', sans-serif;
       font-weight: 700;
-      font-size: 86px;
+      font-size: 64px;
       fill: #0f172a;
       text-anchor: middle;
       dominant-baseline: central;
@@ -273,55 +401,74 @@
       width: 100%;
       height: 100%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 36px 56px;
+      padding: 36px 52px;
       text-align: center;
       color: #0f172a;
       font-family: 'MontserratCustom', sans-serif;
       font-weight: 700;
-      font-size: 46px;
+      font-size: 44px;
       line-height: 1.25;
     }
 
     .nav-arrow {
       cursor: pointer;
-      opacity: 0.9;
+      opacity: 0.92;
     }
 
     .nav-arrow:active {
-      opacity: 0.5;
+      opacity: 0.45;
     }
 
-    .choose-hit-area {
+    .hit-area {
       cursor: pointer;
     }
 
-    /* Bandeau d'attente après validation de la carte */
+    /* Bandeau d'état actif d'un pouvoir sur mobile */
+    #mobile-active-banner {
+      display: none;
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #fbbf24;
+      color: #020617;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      z-index: 60;
+      white-space: nowrap;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+
+    /* Écran d'attente après validation de la carte */
     #mobile-locked-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background-color: rgba(2, 6, 23, 0.8);
-      backdrop-filter: blur(4px);
-      z-index: 50;
+      background-color: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 70;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 32px;
+      padding: 28px;
       text-align: center;
-      gap: 20px;
+      gap: 18px;
     }
 
     #mobile-locked-overlay h2 {
       color: #fbbf24;
-      font-size: 28px;
+      font-size: 26px;
       text-transform: uppercase;
     }
 
     #mobile-locked-overlay p {
       color: #f8fafc;
-      font-size: 20px;
+      font-size: 19px;
       line-height: 1.4;
       max-width: 340px;
     }
@@ -333,34 +480,56 @@
        VUE 1 : ÉCRAN TV HÔTE (3840x2160)
        ========================================= -->
   <div id="tv-view">
+    <button id="tv-burger-btn" class="tv-burger-btn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
     <svg viewBox="0 0 3840 2160" preserveAspectRatio="xMidYMid meet">
       <image href="assets/Fond.jpg" x="0" y="0" width="3840" height="2160" />
+
+      <!-- Équipe Bleue -->
       <text x="665" y="382" class="team-title">Équipe Bleue</text>
       <text id="tv-blue-count" x="665" y="685" class="cards-count">6 cartes</text>
+
+      <!-- Croix rouges Faux.svg sur les 3 pouvoirs de l'Équipe Bleue -->
+      <image id="tv-blue-pwr-0-x" href="assets/Faux.svg" x="285" y="960" width="210" height="210" style="display:none;" />
+      <image id="tv-blue-pwr-1-x" href="assets/Faux.svg" x="560" y="960" width="210" height="210" style="display:none;" />
+      <image id="tv-blue-pwr-2-x" href="assets/Faux.svg" x="835" y="960" width="210" height="210" style="display:none;" />
+
+      <!-- Nombre Cible Central -->
       <text id="tv-target" x="1920" y="1080" class="target-number">500</text>
+
+      <!-- Équipe Rouge -->
       <text x="3175" y="382" class="team-title">Équipe Rouge</text>
       <text id="tv-red-count" x="3175" y="685" class="cards-count">6 cartes</text>
 
-      <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Bas Gauche) -->
+      <!-- Croix rouges Faux.svg sur les 3 pouvoirs de l'Équipe Rouge -->
+      <image id="tv-red-pwr-0-x" href="assets/Faux.svg" x="2795" y="960" width="210" height="210" style="display:none;" />
+      <image id="tv-red-pwr-1-x" href="assets/Faux.svg" x="3070" y="960" width="210" height="210" style="display:none;" />
+      <image id="tv-red-pwr-2-x" href="assets/Faux.svg" x="3345" y="960" width="210" height="210" style="display:none;" />
+
+      <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Bas Gauche - Texte seul + Valeur Balloon) -->
       <g id="tv-blue-reveal" style="display: none;">
-        <image href="assets/cartesquestion.svg" x="180" y="1410" width="970" height="540" preserveAspectRatio="none" />
-        <foreignObject x="180" y="1410" width="970" height="540">
+        <foreignObject x="180" y="1400" width="970" height="360">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-blue-question-text" class="tv-question-box"></div>
         </foreignObject>
+        <text id="tv-blue-value" x="665" y="1855" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-blue-verdict" href="" x="525" y="1460" width="280" height="280" style="display:none;" />
       </g>
 
-      <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Bas Droite) -->
+      <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Bas Droite - Texte seul + Valeur Balloon) -->
       <g id="tv-red-reveal" style="display: none;">
-        <image href="assets/cartesquestion.svg" x="2690" y="1410" width="970" height="540" preserveAspectRatio="none" />
-        <foreignObject x="2690" y="1410" width="970" height="540">
+        <foreignObject x="2690" y="1400" width="970" height="360">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-red-question-text" class="tv-question-box"></div>
         </foreignObject>
+        <text id="tv-red-value" x="3175" y="1855" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-red-verdict" href="" x="3035" y="1460" width="280" height="280" style="display:none;" />
       </g>
     </svg>
 
-    <!-- Fenêtre QR Code au démarrage -->
-    <div id="qr-overlay" class="qr-overlay">
-      <div class="qr-modal">
+    <!-- Modale QR Code TV -->
+    <div id="qr-overlay" class="modal-overlay" style="display: flex;">
+      <div class="modal-card">
         <h2>Rejoindre la partie</h2>
         <div class="qr-box">
           <div id="qrcode"></div>
@@ -369,7 +538,30 @@
           <span id="badge-blue" class="status-badge">Équipe Bleue : En attente</span>
           <span id="badge-red" class="status-badge">Équipe Rouge : En attente</span>
         </div>
-        <button id="start-btn" class="start-btn">LANCER LA PARTIE</button>
+        <button id="qr-close-btn" class="btn-primary">LANCER / CONTINUER LA PARTIE</button>
+      </div>
+    </div>
+
+    <!-- Menu Burger TV -->
+    <div id="tv-menu-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2>Menu</h2>
+        <button id="tv-menu-rules" class="menu-stack-btn">Règles</button>
+        <button id="tv-menu-qr" class="menu-stack-btn">Afficher le QR Code</button>
+        <button id="tv-menu-restart" class="menu-stack-btn" style="border-color:#e11d48; color:#fda4af;">Redémarrer la partie</button>
+        <button id="tv-menu-close" class="btn-secondary">Fermer</button>
+      </div>
+    </div>
+
+    <!-- Confirmation Redémarrage TV -->
+    <div id="tv-restart-confirm-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2>Redémarrer la partie ?</h2>
+        <p>Les scores, les 6 cartes et les 3 pouvoirs des deux équipes seront réinitialisés.</p>
+        <div class="modal-btn-row">
+          <button id="tv-restart-yes" class="btn-danger">Oui, redémarrer</button>
+          <button id="tv-restart-no" class="btn-secondary">Annuler</button>
+        </div>
       </div>
     </div>
   </div>
@@ -378,7 +570,7 @@
        VUE 2 : ÉCRAN SMARTPHONE JOUEUR (1206x2622)
        ========================================= -->
   <div id="mobile-view">
-    
+
     <!-- Étape 1 : Choix exclusif de l'équipe -->
     <div id="team-select-screen">
       <h1>Choisissez votre équipe</h1>
@@ -387,79 +579,187 @@
       <p id="connection-msg" style="color:#94a3b8; font-size:15px;">Connexion à la TV en cours...</p>
     </div>
 
-    <!-- Étape 2 : Interface Joueur Portrait 1206x2622 -->
+    <!-- Étape 2 : Plateau Joueur Portrait 1206x2622 -->
     <div id="player-board-screen">
       <svg viewBox="0 0 1206 2622" preserveAspectRatio="xMidYMid meet">
-        <!-- Fond d'écran de l'équipe -->
         <image id="player-bg-img" href="" x="0" y="0" width="1206" height="2622" />
 
-        <!-- Compteur cartes restantes (Case gris clair la plus à gauche) -->
-        <text id="mob-cards-count" x="155" y="138" class="mobile-counter-text">6</text>
+        <!-- Compteur cartes restantes dans la case grise de gauche -->
+        <text id="mob-cards-count" x="235" y="138" class="mobile-counter-text">6 cartes</text>
 
-        <!-- Compteur pouvoirs restants (Deuxième case grise à côté de l'éclair) -->
-        <text id="mob-powers-count" x="670" y="138" class="mobile-counter-text">3</text>
+        <!-- Compteur pouvoirs restants + éclair dans la 2e case grise -->
+        <text id="mob-powers-count" x="720" y="138" class="mobile-counter-text">3 ⚡</text>
+
+        <!-- Zone cliquable Menu Burger (haut droite) -->
+        <rect id="mob-burger-hit" class="hit-area" x="945" y="65" width="175" height="145" fill="transparent" />
 
         <!-- =====================================
-             CARTE QUESTION SUPÉRIEURE (Index haut)
+             CARTE QUESTION SUPÉRIEURE (Max 3 cartes)
              ===================================== -->
         <image href="assets/cartesquestion.svg" x="175" y="615" width="856" height="475" preserveAspectRatio="none" />
         <foreignObject x="175" y="615" width="856" height="475">
           <div xmlns="http://www.w3.org/1999/xhtml" id="card-top-text" class="mobile-card-text"></div>
         </foreignObject>
 
-        <!-- Flèches indépendantes carte du haut -->
+        <!-- Flèches indépendantes ligne du haut -->
         <polyline id="top-prev" class="nav-arrow" points="135,785 75,852 135,920" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
         <polyline id="top-next" class="nav-arrow" points="1071,785 1131,852 1071,920" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
 
-        <!-- Zone cliquable "Choisir cette carte" (Haut) -->
-        <rect id="choose-top-btn" class="choose-hit-area" x="285" y="1145" width="636" height="115" rx="57" fill="transparent" />
+        <!-- Bouton "Choisir cette carte" (Haut) -->
+        <rect id="choose-top-btn" class="hit-area" x="285" y="1145" width="636" height="115" rx="57" fill="transparent" />
 
         <!-- =====================================
-             CARTE QUESTION INFÉRIEURE (Index bas)
+             CARTE QUESTION INFÉRIEURE (Max 3 cartes)
              ===================================== -->
         <image href="assets/cartesquestion.svg" x="175" y="1395" width="856" height="475" preserveAspectRatio="none" />
         <foreignObject x="175" y="1395" width="856" height="475">
           <div xmlns="http://www.w3.org/1999/xhtml" id="card-bottom-text" class="mobile-card-text"></div>
         </foreignObject>
 
-        <!-- Flèches indépendantes carte du bas -->
+        <!-- Flèches indépendantes ligne du bas -->
         <polyline id="bottom-prev" class="nav-arrow" points="135,1565 75,1632 135,1700" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
         <polyline id="bottom-next" class="nav-arrow" points="1071,1565 1131,1632 1071,1700" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
 
-        <!-- Zone cliquable "Choisir cette carte" (Bas) -->
-        <rect id="choose-bottom-btn" class="choose-hit-area" x="285" y="1925" width="636" height="115" rx="57" fill="transparent" />
+        <!-- Bouton "Choisir cette carte" (Bas) -->
+        <rect id="choose-bottom-btn" class="hit-area" x="285" y="1925" width="636" height="115" rx="57" fill="transparent" />
+
+        <!-- =====================================
+             3 CARTES POUVOIR + CROIX ROUGE Faux.svg
+             ===================================== -->
+        <!-- Pouvoir 0 : Plus / Moins 200 -->
+        <image id="mob-pwr-0-x" href="assets/Faux.svg" x="275" y="2160" width="190" height="310" style="display:none;" />
+        <rect id="mob-pwr-0-hit" class="hit-area" x="265" y="2135" width="210" height="360" rx="24" fill="transparent" />
+
+        <!-- Pouvoir 1 : Changer de carte -->
+        <image id="mob-pwr-1-x" href="assets/Faux.svg" x="508" y="2160" width="190" height="310" style="display:none;" />
+        <rect id="mob-pwr-1-hit" class="hit-area" x="498" y="2135" width="210" height="360" rx="24" fill="transparent" />
+
+        <!-- Pouvoir 2 : Jouer 2 cartes -->
+        <image id="mob-pwr-2-x" href="assets/Faux.svg" x="741" y="2160" width="190" height="310" style="display:none;" />
+        <rect id="mob-pwr-2-hit" class="hit-area" x="731" y="2135" width="210" height="360" rx="24" fill="transparent" />
       </svg>
 
-      <!-- Écran de confirmation / attente après sélection -->
+      <div id="mobile-active-banner"></div>
+
+      <!-- Écran d'attente après envoi de la carte -->
       <div id="mobile-locked-overlay">
-        <h2>Carte envoyée sur la TV !</h2>
+        <h2 id="locked-title">Carte envoyée sur la TV !</h2>
         <p id="chosen-card-reminder"></p>
+      </div>
+    </div>
+
+    <!-- Menu Burger Joueur (Uniquement Règles) -->
+    <div id="mob-menu-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2>Menu</h2>
+        <button id="mob-menu-rules" class="menu-stack-btn">Règles</button>
+        <button id="mob-menu-close" class="btn-secondary">Fermer</button>
+      </div>
+    </div>
+
+    <!-- Modale Explication & Double Validation Pouvoir -->
+    <div id="power-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2 id="power-modal-title">Pouvoir</h2>
+        <p id="power-modal-desc"></p>
+        <div id="power-step-1" class="modal-btn-row">
+          <button id="power-use-btn" class="btn-primary">Utiliser</button>
+          <button id="power-close-btn" class="btn-secondary">Fermer</button>
+        </div>
+        <div id="power-step-2" style="display:none; flex-direction:column; gap:14px; width:100%;">
+          <p style="color:#fbbf24; font-weight:700;">Confirmer l'utilisation définitive de ce pouvoir ?</p>
+          <div id="power-extra-options" class="modal-btn-row"></div>
+          <button id="power-cancel-confirm" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modale Choix de la prochaine cible (Pouvoir Jouer 2 cartes en cas de défaite) -->
+    <div id="two-cards-loser-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2>Vous étiez les plus éloignés !</h2>
+        <p>Choisissez laquelle de vos 2 cartes jouées devient la prochaine cible sur la TV (vous piocherez ensuite 2 nouvelles cartes) :</p>
+        <div class="modal-btn-row" style="flex-direction:column;">
+          <button id="pick-target-card-1" class="btn-primary"></button>
+          <button id="pick-target-card-2" class="btn-primary"></button>
+        </div>
       </div>
     </div>
 
   </div>
 
+  <!-- =========================================
+       MODALE PARTAGÉE : RÈGLES DU JEU & VICTOIRE
+       ========================================= -->
+  <div id="rules-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h2>Règles du jeu — 0 à 1000</h2>
+      <div class="rules-list">
+        <p><strong>But du jeu :</strong> Soyez la première équipe à vous débarrasser de toutes vos cartes Question (arriver à <strong>0 carte</strong>).</p>
+        <p><strong>Déroulement d'une manche :</strong> Chaque équipe possède 6 cartes Question au départ (réponses entre 0 et 1000). Choisissez secrètement la carte dont la réponse vous semble la plus proche du <strong>nombre cible</strong> au centre de la TV.</p>
+        <p><strong>Révélation :</strong> Une fois les 2 équipes prêtes, les valeurs s'affichent après un suspense de 2 secondes. L'équipe la plus proche remporte la manche, défausse sa carte, et sa valeur devient la <strong>nouvelle cible</strong>. L'équipe la plus éloignée défausse sa carte et en pioche une nouvelle.</p>
+        <p><strong>Pouvoir Plus / Moins 200 :</strong> Ajoutez ou soustrayez 200 à la valeur de votre carte avant la révélation.</p>
+        <p><strong>Pouvoir Changer de carte :</strong> Remplacez l'une de vos cartes Question par une nouvelle carte de la pioche.</p>
+        <p><strong>Pouvoir Jouer 2 cartes :</strong> Jouez 2 cartes et choisissez la somme (+) ou la différence (-). Si vous êtes les plus proches, vous défaussez les 2 cartes ! Si vous êtes les plus éloignés, vous choisissez laquelle de vos 2 cartes devient la prochaine cible et vous reprenez 2 cartes.</p>
+      </div>
+      <button id="rules-close-btn" class="btn-primary">Fermer</button>
+    </div>
+  </div>
+
+  <div id="victory-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h2 id="victory-title">Victoire !</h2>
+      <p id="victory-subtitle">Félicitations, vous avez défaussé toutes vos cartes !</p>
+      <button id="victory-close-btn" class="btn-primary">Fermer</button>
+    </div>
+  </div>
+
   <script>
     // =========================================
-    // BASE DE QUESTIONS DE TEST (À COMPLÉTER)
+    // UTILITAIRES : PIOCHE & AUDIO SUSPENSE
     // =========================================
-    const SAMPLE_CARDS_BLUE = [
-      { id: 1, question: "Nombre de touches sur un piano standard ?", value: 88 },
-      { id: 2, question: "Année de la chute du mur de Berlin ?", value: 1989 },
-      { id: 3, question: "Nombre de pays membres de l'Union Européenne ?", value: 27 },
-      { id: 4, question: "Vitesse maximale d'un guépard en km/h ?", value: 115 },
-      { id: 5, question: "Hauteur de la Tour Eiffel en mètres (avec antenne) ?", value: 330 },
-      { id: 6, question: "Nombre d'os dans le corps humain adulte ?", value: 206 }
-    ];
+    const BASE_POOL = (typeof QUESTIONS_0_A_1000 !== 'undefined' && QUESTIONS_0_A_1000.length > 0)
+      ? QUESTIONS_0_A_1000
+      : [
+          { id: 1, question: "Hauteur de la Tour Eiffel en mètres ?", value: 330 },
+          { id: 2, question: "Nombre de communes en Belgique ?", value: 581 }
+        ];
 
-    const SAMPLE_CARDS_RED = [
-      { id: 7, question: "Distance Terre-Lune en milliers de kilomètres ?", value: 384 },
-      { id: 8, question: "Nombre de communes en Belgique ?", value: 581 },
-      { id: 9, question: "Année du premier pas sur la Lune ?", value: 1969 },
-      { id: 10, question: "Nombre de cartes dans un jeu de tarot complet ?", value: 78 },
-      { id: 11, question: "Température d'ébullition de l'eau au sommet de l'Everest (°C) ?", value: 71 },
-      { id: 12, question: "Nombre de muscles dans le corps humain ?", value: 639 }
-    ];
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // Son de suspense de 2 secondes via Web Audio API
+    function playSuspenseSound(durationSec = 2.0) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(110, now);
+        osc.frequency.exponentialRampToValueAtTime(440, now + durationSec);
+
+        gain.gain.setValueAtTime(0.02, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + durationSec - 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + durationSec);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + durationSec);
+      } catch (e) {
+        console.warn("Audio non disponible:", e);
+      }
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const isMobileMode = urlParams.get('mode') === 'mobile';
@@ -468,221 +768,44 @@
     const tvView = document.getElementById('tv-view');
     const mobileView = document.getElementById('mobile-view');
 
+    // Modales Règles & Victoire partagées
+    document.getElementById('rules-close-btn').addEventListener('click', () => {
+      document.getElementById('rules-modal').style.display = 'none';
+    });
+    document.getElementById('victory-close-btn').addEventListener('click', () => {
+      document.getElementById('victory-modal').style.display = 'none';
+    });
+
     // =========================================
     // LOGIQUE TÉLÉVISEUR (HÔTE)
     // =========================================
     if (!isMobileMode) {
-      const takenTeams = { blue: false, red: false };
+      let deck = [];
+      let targetNumber = 500;
       const connections = [];
 
-      // Création de l'identifiant unique de session PeerJS pour la TV
-      const roomId = 'zero1000-' + Math.random().toString(36).substring(2, 8);
-      const peer = new Peer(roomId);
+      const gameState = {
+        blue: { connected: false, hand: [], powersUsed: [false, false, false], submission: null },
+        red:  { connected: false, hand: [], powersUsed: [false, false, false], submission: null }
+      };
 
-      peer.on('open', (id) => {
-        const mobileUrl = new URL(window.location.href);
-        mobileUrl.searchParams.set('mode', 'mobile');
-        mobileUrl.searchParams.set('host', id);
-
-        new QRCode(document.getElementById('qrcode'), {
-          text: mobileUrl.toString(),
-          width: 240,
-          height: 240,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.H
-        });
-      });
-
-      function broadcastState() {
-        connections.forEach(conn => {
-          if (conn.open) {
-            conn.send({ type: 'TEAM_STATE', takenTeams });
+      function drawCards(count) {
+        const drawn = [];
+        for (let i = 0; i < count; i++) {
+          if (deck.length === 0) {
+            deck = shuffleArray(BASE_POOL);
           }
-        });
-      }
-
-      peer.on('connection', (conn) => {
-        connections.push(conn);
-
-        conn.on('open', () => {
-          conn.send({ type: 'TEAM_STATE', takenTeams });
-        });
-
-        conn.on('data', (data) => {
-          // Une équipe verrouille sa couleur
-          if (data.type === 'CLAIM_TEAM') {
-            if (!takenTeams[data.team]) {
-              takenTeams[data.team] = true;
-              conn.send({ type: 'CLAIM_ACCEPTED', team: data.team });
-              broadcastState();
-
-              if (data.team === 'blue') {
-                const badge = document.getElementById('badge-blue');
-                badge.textContent = 'Équipe Bleue : Connectée';
-                badge.classList.add('connected-blue');
-              } else if (data.team === 'red') {
-                const badge = document.getElementById('badge-red');
-                badge.textContent = 'Équipe Rouge : Connectée';
-                badge.classList.add('connected-red');
-              }
-            } else {
-              conn.send({ type: 'CLAIM_REJECTED', team: data.team });
-            }
-          }
-
-          // Une équipe a choisi sa carte -> affichage immédiat de la question sur la TV
-          if (data.type === 'SELECT_CARD') {
-            if (data.team === 'blue') {
-              document.getElementById('tv-blue-question-text').textContent = data.question;
-              document.getElementById('tv-blue-reveal').style.display = 'block';
-            } else if (data.team === 'red') {
-              document.getElementById('tv-red-question-text').textContent = data.question;
-              document.getElementById('tv-red-reveal').style.display = 'block';
-            }
-          }
-        });
-      });
-
-      document.getElementById('start-btn').addEventListener('click', () => {
-        document.getElementById('qr-overlay').style.display = 'none';
-      });
-    }
-
-    // =========================================
-    // LOGIQUE SMARTPHONE (JOUEUR)
-    // =========================================
-    if (isMobileMode) {
-      tvView.style.display = 'none';
-      mobileView.style.display = 'block';
-
-      const btnBlue = document.getElementById('select-blue');
-      const btnRed = document.getElementById('select-red');
-      const connMsg = document.getElementById('connection-msg');
-
-      let myTeam = null;
-      let myHand = [];
-      let topIndex = 0;
-      let bottomIndex = 1;
-      let hostConn = null;
-
-      // Connexion à la TV via PeerJS
-      if (hostPeerIdFromUrl) {
-        const peer = new Peer();
-        peer.on('open', () => {
-          hostConn = peer.connect(hostPeerIdFromUrl);
-
-          hostConn.on('open', () => {
-            connMsg.textContent = 'Connecté à la TV ! Choisissez votre équipe.';
-          });
-
-          hostConn.on('data', (data) => {
-            // Verrouillage en direct si l'autre téléphone a déjà pris une équipe
-            if (data.type === 'TEAM_STATE') {
-              btnBlue.disabled = data.takenTeams.blue;
-              btnBlue.textContent = data.takenTeams.blue ? 'Équipe Bleue (Déjà prise)' : 'Équipe Bleue';
-
-              btnRed.disabled = data.takenTeams.red;
-              btnRed.textContent = data.takenTeams.red ? 'Équipe Rouge (Déjà prise)' : 'Équipe Rouge';
-            }
-
-            if (data.type === 'CLAIM_ACCEPTED') {
-              enterPlayerBoard(data.team);
-            }
-          });
-        });
-      } else {
-        connMsg.textContent = 'Mode aperçu hors-ligne';
-      }
-
-      function requestTeam(team) {
-        if (hostConn && hostConn.open) {
-          hostConn.send({ type: 'CLAIM_TEAM', team });
-        } else {
-          // Fallback si testé sans TV ouverte
-          enterPlayerBoard(team);
+          drawn.push(deck.pop());
         }
+        return drawn;
       }
 
-      btnBlue.addEventListener('click', () => requestTeam('blue'));
-      btnRed.addEventListener('click', () => requestTeam('red'));
+      function initGame(resetConnections = false) {
+        deck = shuffleArray(BASE_POOL);
+        targetNumber = Math.floor(Math.random() * 801) + 100; // Cible initiale entre 100 et 900
+        document.getElementById('tv-target').textContent = targetNumber;
 
-      function enterPlayerBoard(team) {
-        myTeam = team;
-        const bgImg = document.getElementById('player-bg-img');
-
-        if (team === 'blue') {
-          bgImg.setAttribute('href', 'assets/player/Fond_player_bleu.jpg');
-          myHand = [...SAMPLE_CARDS_BLUE];
-        } else {
-          bgImg.setAttribute('href', 'assets/player/fond_player_rouge.jpg');
-          myHand = [...SAMPLE_CARDS_RED];
-        }
-
-        topIndex = 0;
-        bottomIndex = myHand.length > 1 ? 1 : 0;
-
-        document.getElementById('team-select-screen').style.display = 'none';
-        document.getElementById('player-board-screen').style.display = 'flex';
-        updateMobileCardsDisplay();
-      }
-
-      function updateMobileCardsDisplay() {
-        document.getElementById('mob-cards-count').textContent = myHand.length;
-        if (myHand.length > 0) {
-          document.getElementById('card-top-text').textContent = myHand[topIndex].question;
-          document.getElementById('card-bottom-text').textContent = myHand[bottomIndex].question;
-        }
-      }
-
-      // Flèches indépendantes carte du haut
-      document.getElementById('top-prev').addEventListener('click', () => {
-        if (myHand.length === 0) return;
-        topIndex = (topIndex - 1 + myHand.length) % myHand.length;
-        updateMobileCardsDisplay();
-      });
-
-      document.getElementById('top-next').addEventListener('click', () => {
-        if (myHand.length === 0) return;
-        topIndex = (topIndex + 1) % myHand.length;
-        updateMobileCardsDisplay();
-      });
-
-      // Flèches indépendantes carte du bas
-      document.getElementById('bottom-prev').addEventListener('click', () => {
-        if (myHand.length === 0) return;
-        bottomIndex = (bottomIndex - 1 + myHand.length) % myHand.length;
-        updateMobileCardsDisplay();
-      });
-
-      document.getElementById('bottom-next').addEventListener('click', () => {
-        if (myHand.length === 0) return;
-        bottomIndex = (bottomIndex + 1) % myHand.length;
-        updateMobileCardsDisplay();
-      });
-
-      // Validation d'une carte
-      function chooseCard(cardIndex) {
-        if (!myHand[cardIndex]) return;
-        const chosen = myHand[cardIndex];
-
-        if (hostConn && hostConn.open) {
-          hostConn.send({
-            type: 'SELECT_CARD',
-            team: myTeam,
-            question: chosen.question,
-            value: chosen.value
-          });
-        }
-
-        document.getElementById('chosen-card-reminder').textContent = chosen.question;
-        document.getElementById('mobile-locked-overlay').style.display = 'flex';
-      }
-
-      document.getElementById('choose-top-btn').addEventListener('click', () => chooseCard(topIndex));
-      document.getElementById('choose-bottom-btn').addEventListener('click', () => chooseCard(bottomIndex));
-    }
-  </script>
-
-</body>
-</html>
+        ['blue', 'red'].forEach(team => {
+          if (resetConnections) gameState[team].connected = false;
+          gameState[team].hand = drawCards(6);
+          gameState[team].powersUsed =
