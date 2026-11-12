@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>0 à 1000</title>
-  <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
     @font-face {
@@ -17,65 +16,88 @@
     @font-face {
       font-family: 'MontserratCustom';
       src: url('assets/fonts/montserrat-cyrillic-500-normal.ttf') format('truetype');
-      font-weight: 500;
+      font-weight: 700;
       font-style: normal;
     }
 
-    body {
-      font-family: 'MontserratCustom', sans-serif;
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      overflow: hidden;
       user-select: none;
     }
 
-    .cartoon-number {
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #020617;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Le SVG occupe tout l'écran en conservant exactement les proportions 3840x2160 */
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .team-title {
+      font-family: 'MontserratCustom', sans-serif;
+      font-weight: 700;
+      font-size: 74px;
+      fill: #ffffff;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    .cards-count {
+      font-family: 'MontserratCustom', sans-serif;
+      font-weight: 700;
+      font-size: 68px;
+      fill: #000000;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    .target-number {
       font-family: 'BalloonDreams', sans-serif;
-      color: #ffffff;
-      -webkit-text-stroke: 4px #1e1b4b;
+      font-size: 320px;
+      fill: #ffffff;
+      stroke: #1e1b4b;
+      stroke-width: 14px;
+      paint-order: stroke fill;
+      text-anchor: middle;
+      dominant-baseline: central;
     }
   </style>
 </head>
-<body class="w-screen h-screen relative bg-slate-950">
+<body>
 
-  <!-- FOND D'ÉCRAN PRINCIPAL (CONTIENT DÉJÀ TOUS LES CADRES ET VISUELS) -->
-  <img 
-    src="assets/Fond.jpg" 
-    alt="Fond du plateau" 
-    class="absolute inset-0 w-full h-full object-fill z-0"
-  />
+  <!-- Scène verrouillée aux dimensions exactes 4K de Fond.jpg -->
+  <svg viewBox="0 0 3840 2160" preserveAspectRatio="xMidYMid meet">
+    
+    <!-- Image de fond 4K -->
+    <image href="assets/Fond.jpg" x="0" y="0" width="3840" height="2160" />
 
-  <!-- CALQUE DES TEXTES UNIQUEMENT (POSITIONNÉS AU PIXEL PRÈS EN %) -->
-  <div class="relative z-10 w-full h-full">
+    <!-- ÉQUIPE BLEUE : Titre centré dans la pilule bleue -->
+    <text x="675" y="408" class="team-title">Équipe Bleue</text>
 
-    <!-- NOM ÉQUIPE BLEUE (Dans le cartouche bleu en haut à gauche) -->
-    <div class="absolute top-[15.5%] left-[3%] w-[29%] h-[6.5%] flex items-center justify-center">
-      <span class="text-white font-bold text-3xl tracking-wide">Équipe Bleue</span>
-    </div>
+    <!-- ÉQUIPE BLEUE : "6 cartes" centré dans la pilule jaune gauche -->
+    <text x="675" y="662" class="cards-count">6 cartes</text>
 
-    <!-- COMPTEUR ÉQUIPE BLEUE (Dans le cartouche jaune à gauche) -->
-    <div class="absolute top-[25.5%] left-[4.2%] w-[26.5%] h-[6%] flex items-center justify-center">
-      <span class="text-black font-bold text-2xl">6 cartes</span>
-    </div>
+    <!-- CARTE CIBLE CENTRALE : Chiffre "500" -->
+    <text x="1920" y="1080" class="target-number">500</text>
 
-    <!-- CARTE CIBLE CENTRALE (Dans le cadre central du fond) -->
-    <div class="absolute top-[34%] left-[35.5%] w-[29%] h-[33%] flex items-center justify-center">
-      <span class="text-[7.5rem] leading-none cartoon-number">
-        500
-      </span>
-    </div>
+    <!-- ÉQUIPE ROUGE : Titre centré dans la pilule rouge -->
+    <text x="3165" y="408" class="team-title">Équipe Rouge</text>
 
-    <!-- NOM ÉQUIPE ROUGE (Dans le cartouche rouge en haut à droite) -->
-    <div class="absolute top-[15.5%] right-[3%] w-[29%] h-[6.5%] flex items-center justify-center">
-      <span class="text-white font-bold text-3xl tracking-wide">Équipe Rouge</span>
-    </div>
+    <!-- ÉQUIPE ROUGE : "6 cartes" centré dans la pilule jaune droite -->
+    <text x="3165" y="662" class="cards-count">6 cartes</text>
 
-    <!-- COMPTEUR ÉQUIPE ROUGE (Dans le cartouche jaune à droite) -->
-    <div class="absolute top-[25.5%] right-[4.2%] w-[26.5%] h-[6%] flex items-center justify-center">
-      <span class="text-black font-bold text-2xl">6 cartes</span>
-    </div>
-
-  </div>
+  </svg>
 
 </body>
 </html>
