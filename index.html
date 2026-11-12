@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>0 à 1000</title>
 
-  <!-- Bibliothèque officielle pour générer le QR Code -->
+  <!-- Génération QR Code & Communication Temps Réel WebRTC (PeerJS) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <style>
     @font-face {
@@ -33,7 +34,7 @@
 
     html, body {
       width: 100vw;
-      height: 100vh;
+      height: 100dvh;
       background-color: #020617;
       overflow: hidden;
       display: flex;
@@ -88,7 +89,24 @@
       dominant-baseline: central;
     }
 
-    /* FENÊTRE MODALE QR CODE AU PREMIER LANCEMENT TV */
+    /* Texte de question sur la TV dans les cadres de révélation */
+    .tv-question-box {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 54px;
+      text-align: center;
+      color: #0f172a;
+      font-family: 'MontserratCustom', sans-serif;
+      font-weight: 700;
+      font-size: 46px;
+      line-height: 1.25;
+    }
+
+    /* MODALE QR CODE TV */
     .qr-overlay {
       position: fixed;
       inset: 0;
@@ -108,7 +126,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
       text-align: center;
       max-width: 90vw;
     }
@@ -130,11 +148,31 @@
       justify-content: center;
     }
 
-    .qr-modal p {
-      color: #e2e8f0;
-      font-size: 20px;
-      max-width: 420px;
-      line-height: 1.4;
+    .qr-status-row {
+      display: flex;
+      gap: 20px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .status-badge {
+      padding: 8px 18px;
+      border-radius: 999px;
+      background-color: #1e293b;
+      color: #94a3b8;
+      border: 2px solid #334155;
+    }
+
+    .status-badge.connected-blue {
+      background-color: #0284c7;
+      color: #ffffff;
+      border-color: #ffffff;
+    }
+
+    .status-badge.connected-red {
+      background-color: #e11d48;
+      color: #ffffff;
+      border-color: #ffffff;
     }
 
     .start-btn {
@@ -147,29 +185,20 @@
       font-size: 26px;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 0.15s ease, background-color 0.15s ease;
-    }
-
-    .start-btn:hover {
-      background-color: #fcd34d;
-      transform: scale(1.04);
-    }
-
-    .start-btn:active {
-      transform: scale(0.97);
     }
 
     /* =========================================
-       MODE MOBILE : CHOIX D'ÉQUIPE & ÉCRAN JOUEUR
+       MODE MOBILE : PORTRAIT 1206x2622
        ========================================= */
     #mobile-view {
       display: none;
       width: 100vw;
-      height: 100vh;
+      height: 100dvh;
       position: relative;
+      background-color: #020617;
     }
 
-    /* Écran de sélection de couleur */
+    /* Écran de sélection d'équipe */
     #team-select-screen {
       width: 100%;
       height: 100%;
@@ -178,90 +207,155 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      gap: 28px;
-      background-color: #020617;
+      gap: 26px;
     }
 
     #team-select-screen h1 {
       color: #fbbf24;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
       text-align: center;
       text-transform: uppercase;
-      letter-spacing: 1px;
     }
 
     .team-choice-btn {
       width: 100%;
       max-width: 340px;
-      padding: 28px 20px;
+      padding: 26px 20px;
       border-radius: 24px;
       border: 4px solid #ffffff;
       font-family: 'MontserratCustom', sans-serif;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
       color: #ffffff;
       cursor: pointer;
-      transition: transform 0.15s ease;
+      transition: opacity 0.2s ease, transform 0.1s ease;
     }
 
-    .team-choice-btn:active {
+    .team-choice-btn:active:not(:disabled) {
       transform: scale(0.96);
     }
 
-    .btn-blue {
-      background-color: #0284c7;
+    .team-choice-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: #64748b;
     }
 
-    .btn-red {
-      background-color: #e11d48;
-    }
+    .btn-blue { background-color: #0284c7; }
+    .btn-red { background-color: #e11d48; }
 
-    /* Écran joueur aux couleurs de l'équipe */
+    /* Plateau Mobile verrouillé 1206x2622 */
     #player-board-screen {
       display: none;
       width: 100%;
       height: 100%;
-      position: relative;
+      align-items: center;
+      justify-content: center;
     }
 
-    #player-bg {
+    #player-board-screen svg {
       width: 100%;
       height: 100%;
-      object-fit: cover;
       display: block;
     }
 
-    .change-team-btn {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      background-color: rgba(2, 6, 23, 0.75);
-      color: #ffffff;
-      border: 2px solid rgba(255, 255, 255, 0.5);
-      border-radius: 12px;
-      padding: 8px 14px;
+    .mobile-counter-text {
       font-family: 'MontserratCustom', sans-serif;
-      font-size: 13px;
       font-weight: 700;
+      font-size: 86px;
+      fill: #0f172a;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    .mobile-card-text {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 56px;
+      text-align: center;
+      color: #0f172a;
+      font-family: 'MontserratCustom', sans-serif;
+      font-weight: 700;
+      font-size: 46px;
+      line-height: 1.25;
+    }
+
+    .nav-arrow {
       cursor: pointer;
-      z-index: 20;
+      opacity: 0.9;
+    }
+
+    .nav-arrow:active {
+      opacity: 0.5;
+    }
+
+    .choose-hit-area {
+      cursor: pointer;
+    }
+
+    /* Bandeau d'attente après validation de la carte */
+    #mobile-locked-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background-color: rgba(2, 6, 23, 0.8);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+      gap: 20px;
+    }
+
+    #mobile-locked-overlay h2 {
+      color: #fbbf24;
+      font-size: 28px;
+      text-transform: uppercase;
+    }
+
+    #mobile-locked-overlay p {
+      color: #f8fafc;
+      font-size: 20px;
+      line-height: 1.4;
+      max-width: 340px;
     }
   </style>
 </head>
 <body>
 
   <!-- =========================================
-       VUE 1 : ÉCRAN TV HÔTE
+       VUE 1 : ÉCRAN TV HÔTE (3840x2160)
        ========================================= -->
   <div id="tv-view">
     <svg viewBox="0 0 3840 2160" preserveAspectRatio="xMidYMid meet">
       <image href="assets/Fond.jpg" x="0" y="0" width="3840" height="2160" />
       <text x="665" y="382" class="team-title">Équipe Bleue</text>
-      <text x="665" y="685" class="cards-count">6 cartes</text>
-      <text x="1920" y="1080" class="target-number">500</text>
+      <text id="tv-blue-count" x="665" y="685" class="cards-count">6 cartes</text>
+      <text id="tv-target" x="1920" y="1080" class="target-number">500</text>
       <text x="3175" y="382" class="team-title">Équipe Rouge</text>
-      <text x="3175" y="685" class="cards-count">6 cartes</text>
+      <text id="tv-red-count" x="3175" y="685" class="cards-count">6 cartes</text>
+
+      <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Bas Gauche) -->
+      <g id="tv-blue-reveal" style="display: none;">
+        <image href="assets/cartesquestion.svg" x="180" y="1410" width="970" height="540" preserveAspectRatio="none" />
+        <foreignObject x="180" y="1410" width="970" height="540">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="tv-blue-question-text" class="tv-question-box"></div>
+        </foreignObject>
+      </g>
+
+      <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Bas Droite) -->
+      <g id="tv-red-reveal" style="display: none;">
+        <image href="assets/cartesquestion.svg" x="2690" y="1410" width="970" height="540" preserveAspectRatio="none" />
+        <foreignObject x="2690" y="1410" width="970" height="540">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="tv-red-question-text" class="tv-question-box"></div>
+        </foreignObject>
+      </g>
     </svg>
 
     <!-- Fenêtre QR Code au démarrage -->
@@ -271,85 +365,322 @@
         <div class="qr-box">
           <div id="qrcode"></div>
         </div>
-        <p>Scannez ce QR Code avec vos smartphones pour choisir votre équipe</p>
+        <div class="qr-status-row">
+          <span id="badge-blue" class="status-badge">Équipe Bleue : En attente</span>
+          <span id="badge-red" class="status-badge">Équipe Rouge : En attente</span>
+        </div>
         <button id="start-btn" class="start-btn">LANCER LA PARTIE</button>
       </div>
     </div>
   </div>
 
   <!-- =========================================
-       VUE 2 : ÉCRAN SMARTPHONE JOUEUR
+       VUE 2 : ÉCRAN SMARTPHONE JOUEUR (1206x2622)
        ========================================= -->
   <div id="mobile-view">
     
-    <!-- Étape 1 : Choix de l'équipe -->
+    <!-- Étape 1 : Choix exclusif de l'équipe -->
     <div id="team-select-screen">
       <h1>Choisissez votre équipe</h1>
       <button id="select-blue" class="team-choice-btn btn-blue">Équipe Bleue</button>
       <button id="select-red" class="team-choice-btn btn-red">Équipe Rouge</button>
+      <p id="connection-msg" style="color:#94a3b8; font-size:15px;">Connexion à la TV en cours...</p>
     </div>
 
-    <!-- Étape 2 : Fond de l'équipe sélectionnée -->
+    <!-- Étape 2 : Interface Joueur Portrait 1206x2622 -->
     <div id="player-board-screen">
-      <img id="player-bg" src="" alt="Plateau Joueur" />
-      <button id="reset-team-btn" class="change-team-btn">Changer d'équipe</button>
+      <svg viewBox="0 0 1206 2622" preserveAspectRatio="xMidYMid meet">
+        <!-- Fond d'écran de l'équipe -->
+        <image id="player-bg-img" href="" x="0" y="0" width="1206" height="2622" />
+
+        <!-- Compteur cartes restantes (Case gris clair la plus à gauche) -->
+        <text id="mob-cards-count" x="155" y="138" class="mobile-counter-text">6</text>
+
+        <!-- Compteur pouvoirs restants (Deuxième case grise à côté de l'éclair) -->
+        <text id="mob-powers-count" x="670" y="138" class="mobile-counter-text">3</text>
+
+        <!-- =====================================
+             CARTE QUESTION SUPÉRIEURE (Index haut)
+             ===================================== -->
+        <image href="assets/cartesquestion.svg" x="175" y="615" width="856" height="475" preserveAspectRatio="none" />
+        <foreignObject x="175" y="615" width="856" height="475">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="card-top-text" class="mobile-card-text"></div>
+        </foreignObject>
+
+        <!-- Flèches indépendantes carte du haut -->
+        <polyline id="top-prev" class="nav-arrow" points="135,785 75,852 135,920" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        <polyline id="top-next" class="nav-arrow" points="1071,785 1131,852 1071,920" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+
+        <!-- Zone cliquable "Choisir cette carte" (Haut) -->
+        <rect id="choose-top-btn" class="choose-hit-area" x="285" y="1145" width="636" height="115" rx="57" fill="transparent" />
+
+        <!-- =====================================
+             CARTE QUESTION INFÉRIEURE (Index bas)
+             ===================================== -->
+        <image href="assets/cartesquestion.svg" x="175" y="1395" width="856" height="475" preserveAspectRatio="none" />
+        <foreignObject x="175" y="1395" width="856" height="475">
+          <div xmlns="http://www.w3.org/1999/xhtml" id="card-bottom-text" class="mobile-card-text"></div>
+        </foreignObject>
+
+        <!-- Flèches indépendantes carte du bas -->
+        <polyline id="bottom-prev" class="nav-arrow" points="135,1565 75,1632 135,1700" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        <polyline id="bottom-next" class="nav-arrow" points="1071,1565 1131,1632 1071,1700" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+
+        <!-- Zone cliquable "Choisir cette carte" (Bas) -->
+        <rect id="choose-bottom-btn" class="choose-hit-area" x="285" y="1925" width="636" height="115" rx="57" fill="transparent" />
+      </svg>
+
+      <!-- Écran de confirmation / attente après sélection -->
+      <div id="mobile-locked-overlay">
+        <h2>Carte envoyée sur la TV !</h2>
+        <p id="chosen-card-reminder"></p>
+      </div>
     </div>
 
   </div>
 
   <script>
+    // =========================================
+    // BASE DE QUESTIONS DE TEST (À COMPLÉTER)
+    // =========================================
+    const SAMPLE_CARDS_BLUE = [
+      { id: 1, question: "Nombre de touches sur un piano standard ?", value: 88 },
+      { id: 2, question: "Année de la chute du mur de Berlin ?", value: 1989 },
+      { id: 3, question: "Nombre de pays membres de l'Union Européenne ?", value: 27 },
+      { id: 4, question: "Vitesse maximale d'un guépard en km/h ?", value: 115 },
+      { id: 5, question: "Hauteur de la Tour Eiffel en mètres (avec antenne) ?", value: 330 },
+      { id: 6, question: "Nombre d'os dans le corps humain adulte ?", value: 206 }
+    ];
+
+    const SAMPLE_CARDS_RED = [
+      { id: 7, question: "Distance Terre-Lune en milliers de kilomètres ?", value: 384 },
+      { id: 8, question: "Nombre de communes en Belgique ?", value: 581 },
+      { id: 9, question: "Année du premier pas sur la Lune ?", value: 1969 },
+      { id: 10, question: "Nombre de cartes dans un jeu de tarot complet ?", value: 78 },
+      { id: 11, question: "Température d'ébullition de l'eau au sommet de l'Everest (°C) ?", value: 71 },
+      { id: 12, question: "Nombre de muscles dans le corps humain ?", value: 639 }
+    ];
+
     const urlParams = new URLSearchParams(window.location.search);
     const isMobileMode = urlParams.get('mode') === 'mobile';
+    const hostPeerIdFromUrl = urlParams.get('host');
 
     const tvView = document.getElementById('tv-view');
     const mobileView = document.getElementById('mobile-view');
 
-    if (isMobileMode) {
-      // Affichage sur Smartphone après scan du QR Code
-      tvView.style.display = 'none';
-      mobileView.style.display = 'block';
+    // =========================================
+    // LOGIQUE TÉLÉVISEUR (HÔTE)
+    // =========================================
+    if (!isMobileMode) {
+      const takenTeams = { blue: false, red: false };
+      const connections = [];
 
-      const teamSelectScreen = document.getElementById('team-select-screen');
-      const playerBoardScreen = document.getElementById('player-board-screen');
-      const playerBg = document.getElementById('player-bg');
+      // Création de l'identifiant unique de session PeerJS pour la TV
+      const roomId = 'zero1000-' + Math.random().toString(36).substring(2, 8);
+      const peer = new Peer(roomId);
 
-      // Sélection Équipe Bleue
-      document.getElementById('select-blue').addEventListener('click', () => {
-        playerBg.src = 'assets/player/Fond_player_bleu.jpg';
-        teamSelectScreen.style.display = 'none';
-        playerBoardScreen.style.display = 'block';
+      peer.on('open', (id) => {
+        const mobileUrl = new URL(window.location.href);
+        mobileUrl.searchParams.set('mode', 'mobile');
+        mobileUrl.searchParams.set('host', id);
+
+        new QRCode(document.getElementById('qrcode'), {
+          text: mobileUrl.toString(),
+          width: 240,
+          height: 240,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
       });
 
-      // Sélection Équipe Rouge
-      document.getElementById('select-red').addEventListener('click', () => {
-        playerBg.src = 'assets/player/fond_player_rouge.jpg';
-        teamSelectScreen.style.display = 'none';
-        playerBoardScreen.style.display = 'block';
-      });
+      function broadcastState() {
+        connections.forEach(conn => {
+          if (conn.open) {
+            conn.send({ type: 'TEAM_STATE', takenTeams });
+          }
+        });
+      }
 
-      // Bouton de retour si le joueur s'est trompé d'équipe
-      document.getElementById('reset-team-btn').addEventListener('click', () => {
-        playerBoardScreen.style.display = 'none';
-        teamSelectScreen.style.display = 'flex';
-      });
+      peer.on('connection', (conn) => {
+        connections.push(conn);
 
-    } else {
-      // Affichage sur Téléviseur Hôte
-      const mobileUrl = new URL(window.location.href);
-      mobileUrl.searchParams.set('mode', 'mobile');
+        conn.on('open', () => {
+          conn.send({ type: 'TEAM_STATE', takenTeams });
+        });
 
-      new QRCode(document.getElementById('qrcode'), {
-        text: mobileUrl.toString(),
-        width: 240,
-        height: 240,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+        conn.on('data', (data) => {
+          // Une équipe verrouille sa couleur
+          if (data.type === 'CLAIM_TEAM') {
+            if (!takenTeams[data.team]) {
+              takenTeams[data.team] = true;
+              conn.send({ type: 'CLAIM_ACCEPTED', team: data.team });
+              broadcastState();
+
+              if (data.team === 'blue') {
+                const badge = document.getElementById('badge-blue');
+                badge.textContent = 'Équipe Bleue : Connectée';
+                badge.classList.add('connected-blue');
+              } else if (data.team === 'red') {
+                const badge = document.getElementById('badge-red');
+                badge.textContent = 'Équipe Rouge : Connectée';
+                badge.classList.add('connected-red');
+              }
+            } else {
+              conn.send({ type: 'CLAIM_REJECTED', team: data.team });
+            }
+          }
+
+          // Une équipe a choisi sa carte -> affichage immédiat de la question sur la TV
+          if (data.type === 'SELECT_CARD') {
+            if (data.team === 'blue') {
+              document.getElementById('tv-blue-question-text').textContent = data.question;
+              document.getElementById('tv-blue-reveal').style.display = 'block';
+            } else if (data.team === 'red') {
+              document.getElementById('tv-red-question-text').textContent = data.question;
+              document.getElementById('tv-red-reveal').style.display = 'block';
+            }
+          }
+        });
       });
 
       document.getElementById('start-btn').addEventListener('click', () => {
         document.getElementById('qr-overlay').style.display = 'none';
       });
+    }
+
+    // =========================================
+    // LOGIQUE SMARTPHONE (JOUEUR)
+    // =========================================
+    if (isMobileMode) {
+      tvView.style.display = 'none';
+      mobileView.style.display = 'block';
+
+      const btnBlue = document.getElementById('select-blue');
+      const btnRed = document.getElementById('select-red');
+      const connMsg = document.getElementById('connection-msg');
+
+      let myTeam = null;
+      let myHand = [];
+      let topIndex = 0;
+      let bottomIndex = 1;
+      let hostConn = null;
+
+      // Connexion à la TV via PeerJS
+      if (hostPeerIdFromUrl) {
+        const peer = new Peer();
+        peer.on('open', () => {
+          hostConn = peer.connect(hostPeerIdFromUrl);
+
+          hostConn.on('open', () => {
+            connMsg.textContent = 'Connecté à la TV ! Choisissez votre équipe.';
+          });
+
+          hostConn.on('data', (data) => {
+            // Verrouillage en direct si l'autre téléphone a déjà pris une équipe
+            if (data.type === 'TEAM_STATE') {
+              btnBlue.disabled = data.takenTeams.blue;
+              btnBlue.textContent = data.takenTeams.blue ? 'Équipe Bleue (Déjà prise)' : 'Équipe Bleue';
+
+              btnRed.disabled = data.takenTeams.red;
+              btnRed.textContent = data.takenTeams.red ? 'Équipe Rouge (Déjà prise)' : 'Équipe Rouge';
+            }
+
+            if (data.type === 'CLAIM_ACCEPTED') {
+              enterPlayerBoard(data.team);
+            }
+          });
+        });
+      } else {
+        connMsg.textContent = 'Mode aperçu hors-ligne';
+      }
+
+      function requestTeam(team) {
+        if (hostConn && hostConn.open) {
+          hostConn.send({ type: 'CLAIM_TEAM', team });
+        } else {
+          // Fallback si testé sans TV ouverte
+          enterPlayerBoard(team);
+        }
+      }
+
+      btnBlue.addEventListener('click', () => requestTeam('blue'));
+      btnRed.addEventListener('click', () => requestTeam('red'));
+
+      function enterPlayerBoard(team) {
+        myTeam = team;
+        const bgImg = document.getElementById('player-bg-img');
+
+        if (team === 'blue') {
+          bgImg.setAttribute('href', 'assets/player/Fond_player_bleu.jpg');
+          myHand = [...SAMPLE_CARDS_BLUE];
+        } else {
+          bgImg.setAttribute('href', 'assets/player/fond_player_rouge.jpg');
+          myHand = [...SAMPLE_CARDS_RED];
+        }
+
+        topIndex = 0;
+        bottomIndex = myHand.length > 1 ? 1 : 0;
+
+        document.getElementById('team-select-screen').style.display = 'none';
+        document.getElementById('player-board-screen').style.display = 'flex';
+        updateMobileCardsDisplay();
+      }
+
+      function updateMobileCardsDisplay() {
+        document.getElementById('mob-cards-count').textContent = myHand.length;
+        if (myHand.length > 0) {
+          document.getElementById('card-top-text').textContent = myHand[topIndex].question;
+          document.getElementById('card-bottom-text').textContent = myHand[bottomIndex].question;
+        }
+      }
+
+      // Flèches indépendantes carte du haut
+      document.getElementById('top-prev').addEventListener('click', () => {
+        if (myHand.length === 0) return;
+        topIndex = (topIndex - 1 + myHand.length) % myHand.length;
+        updateMobileCardsDisplay();
+      });
+
+      document.getElementById('top-next').addEventListener('click', () => {
+        if (myHand.length === 0) return;
+        topIndex = (topIndex + 1) % myHand.length;
+        updateMobileCardsDisplay();
+      });
+
+      // Flèches indépendantes carte du bas
+      document.getElementById('bottom-prev').addEventListener('click', () => {
+        if (myHand.length === 0) return;
+        bottomIndex = (bottomIndex - 1 + myHand.length) % myHand.length;
+        updateMobileCardsDisplay();
+      });
+
+      document.getElementById('bottom-next').addEventListener('click', () => {
+        if (myHand.length === 0) return;
+        bottomIndex = (bottomIndex + 1) % myHand.length;
+        updateMobileCardsDisplay();
+      });
+
+      // Validation d'une carte
+      function chooseCard(cardIndex) {
+        if (!myHand[cardIndex]) return;
+        const chosen = myHand[cardIndex];
+
+        if (hostConn && hostConn.open) {
+          hostConn.send({
+            type: 'SELECT_CARD',
+            team: myTeam,
+            question: chosen.question,
+            value: chosen.value
+          });
+        }
+
+        document.getElementById('chosen-card-reminder').textContent = chosen.question;
+        document.getElementById('mobile-locked-overlay').style.display = 'flex';
+      }
+
+      document.getElementById('choose-top-btn').addEventListener('click', () => chooseCard(topIndex));
+      document.getElementById('choose-bottom-btn').addEventListener('click', () => chooseCard(bottomIndex));
     }
   </script>
 
