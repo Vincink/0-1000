@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>0 à 1000</title>
 
   <!-- Bibliothèque officielle pour générer le QR Code -->
@@ -28,6 +28,7 @@
       margin: 0;
       padding: 0;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
@@ -41,7 +42,18 @@
       font-family: 'MontserratCustom', sans-serif;
     }
 
-    svg {
+    /* =========================================
+       MODE TV : PLATEAU 4K VERROUILLÉ
+       ========================================= */
+    #tv-view {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #tv-view svg {
       width: 100%;
       height: 100%;
       display: block;
@@ -76,7 +88,7 @@
       dominant-baseline: central;
     }
 
-    /* FENÊTRE MODALE QR CODE AU PREMIER LANCEMENT */
+    /* FENÊTRE MODALE QR CODE AU PREMIER LANCEMENT TV */
     .qr-overlay {
       position: fixed;
       inset: 0;
@@ -146,51 +158,199 @@
     .start-btn:active {
       transform: scale(0.97);
     }
+
+    /* =========================================
+       MODE MOBILE : CHOIX D'ÉQUIPE & ÉCRAN JOUEUR
+       ========================================= */
+    #mobile-view {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* Écran de sélection de couleur */
+    #team-select-screen {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 28px;
+      background-color: #020617;
+    }
+
+    #team-select-screen h1 {
+      color: #fbbf24;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .team-choice-btn {
+      width: 100%;
+      max-width: 340px;
+      padding: 28px 20px;
+      border-radius: 24px;
+      border: 4px solid #ffffff;
+      font-family: 'MontserratCustom', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .team-choice-btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-blue {
+      background-color: #0284c7;
+    }
+
+    .btn-red {
+      background-color: #e11d48;
+    }
+
+    /* Écran joueur aux couleurs de l'équipe */
+    #player-board-screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    #player-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .change-team-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background-color: rgba(2, 6, 23, 0.75);
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-family: 'MontserratCustom', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 20;
+    }
   </style>
 </head>
 <body>
 
-  <!-- PLATEAU TV 4K (STRICTEMENT INCHANGÉ) -->
-  <svg viewBox="0 0 3840 2160" preserveAspectRatio="xMidYMid meet">
-    <image href="assets/Fond.jpg" x="0" y="0" width="3840" height="2160" />
-    <text x="665" y="382" class="team-title">Équipe Bleue</text>
-    <text x="665" y="685" class="cards-count">6 cartes</text>
-    <text x="1920" y="1080" class="target-number">500</text>
-    <text x="3175" y="382" class="team-title">Équipe Rouge</text>
-    <text x="3175" y="685" class="cards-count">6 cartes</text>
-  </svg>
+  <!-- =========================================
+       VUE 1 : ÉCRAN TV HÔTE
+       ========================================= -->
+  <div id="tv-view">
+    <svg viewBox="0 0 3840 2160" preserveAspectRatio="xMidYMid meet">
+      <image href="assets/Fond.jpg" x="0" y="0" width="3840" height="2160" />
+      <text x="665" y="382" class="team-title">Équipe Bleue</text>
+      <text x="665" y="685" class="cards-count">6 cartes</text>
+      <text x="1920" y="1080" class="target-number">500</text>
+      <text x="3175" y="382" class="team-title">Équipe Rouge</text>
+      <text x="3175" y="685" class="cards-count">6 cartes</text>
+    </svg>
 
-  <!-- FENÊTRE SUPERPOSÉE AU PREMIER LANCEMENT -->
-  <div id="qr-overlay" class="qr-overlay">
-    <div class="qr-modal">
-      <h2>Rejoindre la partie</h2>
-      <div class="qr-box">
-        <div id="qrcode"></div>
+    <!-- Fenêtre QR Code au démarrage -->
+    <div id="qr-overlay" class="qr-overlay">
+      <div class="qr-modal">
+        <h2>Rejoindre la partie</h2>
+        <div class="qr-box">
+          <div id="qrcode"></div>
+        </div>
+        <p>Scannez ce QR Code avec vos smartphones pour choisir votre équipe</p>
+        <button id="start-btn" class="start-btn">LANCER LA PARTIE</button>
       </div>
-      <p>Scannez ce QR Code avec vos smartphones pour choisir votre équipe</p>
-      <button id="start-btn" class="start-btn">LANCER LA PARTIE</button>
     </div>
   </div>
 
+  <!-- =========================================
+       VUE 2 : ÉCRAN SMARTPHONE JOUEUR
+       ========================================= -->
+  <div id="mobile-view">
+    
+    <!-- Étape 1 : Choix de l'équipe -->
+    <div id="team-select-screen">
+      <h1>Choisissez votre équipe</h1>
+      <button id="select-blue" class="team-choice-btn btn-blue">Équipe Bleue</button>
+      <button id="select-red" class="team-choice-btn btn-red">Équipe Rouge</button>
+    </div>
+
+    <!-- Étape 2 : Fond de l'équipe sélectionnée -->
+    <div id="player-board-screen">
+      <img id="player-bg" src="" alt="Plateau Joueur" />
+      <button id="reset-team-btn" class="change-team-btn">Changer d'équipe</button>
+    </div>
+
+  </div>
+
   <script>
-    // Génère l'URL mobile à partir de l'adresse actuelle de la page
-    const mobileUrl = new URL(window.location.href);
-    mobileUrl.searchParams.set('mode', 'mobile');
+    const urlParams = new URLSearchParams(window.location.search);
+    const isMobileMode = urlParams.get('mode') === 'mobile';
 
-    // Création du QR Code
-    new QRCode(document.getElementById('qrcode'), {
-      text: mobileUrl.toString(),
-      width: 240,
-      height: 240,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
-    });
+    const tvView = document.getElementById('tv-view');
+    const mobileView = document.getElementById('mobile-view');
 
-    // Fermeture de la fenêtre QR Code au clic sur le bouton
-    document.getElementById('start-btn').addEventListener('click', () => {
-      document.getElementById('qr-overlay').style.display = 'none';
-    });
+    if (isMobileMode) {
+      // Affichage sur Smartphone après scan du QR Code
+      tvView.style.display = 'none';
+      mobileView.style.display = 'block';
+
+      const teamSelectScreen = document.getElementById('team-select-screen');
+      const playerBoardScreen = document.getElementById('player-board-screen');
+      const playerBg = document.getElementById('player-bg');
+
+      // Sélection Équipe Bleue
+      document.getElementById('select-blue').addEventListener('click', () => {
+        playerBg.src = 'assets/player/Fond_player_bleu.jpg';
+        teamSelectScreen.style.display = 'none';
+        playerBoardScreen.style.display = 'block';
+      });
+
+      // Sélection Équipe Rouge
+      document.getElementById('select-red').addEventListener('click', () => {
+        playerBg.src = 'assets/player/fond_player_rouge.jpg';
+        teamSelectScreen.style.display = 'none';
+        playerBoardScreen.style.display = 'block';
+      });
+
+      // Bouton de retour si le joueur s'est trompé d'équipe
+      document.getElementById('reset-team-btn').addEventListener('click', () => {
+        playerBoardScreen.style.display = 'none';
+        teamSelectScreen.style.display = 'flex';
+      });
+
+    } else {
+      // Affichage sur Téléviseur Hôte
+      const mobileUrl = new URL(window.location.href);
+      mobileUrl.searchParams.set('mode', 'mobile');
+
+      new QRCode(document.getElementById('qrcode'), {
+        text: mobileUrl.toString(),
+        width: 240,
+        height: 240,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById('start-btn').addEventListener('click', () => {
+        document.getElementById('qr-overlay').style.display = 'none';
+      });
+    }
   </script>
 
 </body>
