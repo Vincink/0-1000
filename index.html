@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>0 à 1000 - Maquette Visuelle</title>
+  <title>0 à 1000</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* Déclaration de tes polices hébergées sur GitHub */
     @font-face {
       font-family: 'BalloonDreams';
-      src: url('assets/fonts/BALLOONDREAMS.ttf') format('truetype');
+      src: url('assets/fonts/BALLOON_DREAMS.ttf') format('truetype');
       font-weight: normal;
       font-style: normal;
     }
@@ -30,117 +29,51 @@
       user-select: none;
     }
 
-    .font-cartoon {
-      font-family: 'BalloonDreams', sans-serif;
-    }
-
-    /* Contour et ombre portée style cartoon pour le chiffre de la cible */
     .cartoon-number {
       font-family: 'BalloonDreams', sans-serif;
       color: #ffffff;
       -webkit-text-stroke: 4px #1e1b4b;
-      text-shadow: 0 8px 0 #1e1b4b, 0 12px 20px rgba(0, 0, 0, 0.6);
     }
   </style>
 </head>
-<body class="w-screen h-screen relative bg-slate-950 text-white">
+<body class="w-screen h-screen relative bg-slate-950">
 
-  <!-- FOND D'ÉCRAN PRINCIPAL -->
+  <!-- FOND D'ÉCRAN PRINCIPAL (CONTIENT DÉJÀ TOUS LES CADRES ET VISUELS) -->
   <img 
     src="assets/Fond.jpg" 
     alt="Fond du plateau" 
-    class="absolute inset-0 w-full h-full object-cover z-0"
+    class="absolute inset-0 w-full h-full object-fill z-0"
   />
 
-  <!-- CALQUE DE CONTENU STATIQUE -->
-  <div class="relative z-10 w-full h-full flex flex-col justify-between p-6">
+  <!-- CALQUE DES TEXTES UNIQUEMENT (POSITIONNÉS AU PIXEL PRÈS EN %) -->
+  <div class="relative z-10 w-full h-full">
 
-    <!-- BARRE SUPÉRIEURE -->
-    <header class="w-full h-14 px-6 flex items-center justify-between">
-      <span class="text-2xl font-bold tracking-wide text-slate-900">0 à 1000</span>
-      <span class="text-sm font-semibold text-slate-900 bg-white/40 px-3 py-1 rounded-full">Manche 1</span>
-    </header>
+    <!-- NOM ÉQUIPE BLEUE (Dans le cartouche bleu en haut à gauche) -->
+    <div class="absolute top-[15.5%] left-[3%] w-[29%] h-[6.5%] flex items-center justify-center">
+      <span class="text-white font-bold text-3xl tracking-wide">Équipe Bleue</span>
+    </div>
 
-    <!-- ZONE PRINCIPALE (ÉQUIPE BLEUE | CIBLE | ÉQUIPE ROUGE) -->
-    <main class="flex-1 grid grid-cols-3 items-center gap-6 px-4">
+    <!-- COMPTEUR ÉQUIPE BLEUE (Dans le cartouche jaune à gauche) -->
+    <div class="absolute top-[25.5%] left-[4.2%] w-[26.5%] h-[6%] flex items-center justify-center">
+      <span class="text-black font-bold text-2xl">6 cartes</span>
+    </div>
 
-      <!-- COLONNE GAUCHE : ÉQUIPE BLEUE -->
-      <section class="h-full flex flex-col justify-between py-4 px-6">
-        <div class="text-center">
-          <h2 class="text-2xl font-bold text-white drop-shadow">Équipe Bleue</h2>
-          <p class="text-xl font-bold text-slate-900 mt-3">6 cartes</p>
-        </div>
+    <!-- CARTE CIBLE CENTRALE (Dans le cadre central du fond) -->
+    <div class="absolute top-[34%] left-[35.5%] w-[29%] h-[33%] flex items-center justify-center">
+      <span class="text-[7.5rem] leading-none cartoon-number">
+        500
+      </span>
+    </div>
 
-        <!-- Pouvoirs (aperçu visuel) -->
-        <div class="flex justify-center gap-3 my-auto">
-          <div class="w-20 h-28 rounded-xl bg-amber-400 border-2 border-white shadow-lg flex flex-col items-center justify-center text-center p-1 text-slate-950 font-bold text-xs">
-            <span>Plus</span>
-            <span class="text-lg font-cartoon">200</span>
-            <span>Moins</span>
-          </div>
-          <div class="w-20 h-28 rounded-xl bg-amber-400 border-2 border-white shadow-lg flex items-center justify-center text-center p-2 text-slate-950 font-bold text-xs">
-            Changer de cartes
-          </div>
-          <div class="w-20 h-28 rounded-xl bg-amber-400 border-2 border-white shadow-lg flex items-center justify-center text-center p-2 text-slate-950 font-bold text-xs">
-            Jouer 2 cartes
-          </div>
-        </div>
+    <!-- NOM ÉQUIPE ROUGE (Dans le cartouche rouge en haut à droite) -->
+    <div class="absolute top-[15.5%] right-[3%] w-[29%] h-[6.5%] flex items-center justify-center">
+      <span class="text-white font-bold text-3xl tracking-wide">Équipe Rouge</span>
+    </div>
 
-        <!-- Emplacement carte jouée -->
-        <div class="w-full h-44 rounded-2xl border-4 border-white/80 bg-sky-500/30 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center shadow-xl">
-          <p class="text-sm text-white font-semibold mb-2">Exemple de question posée par l'équipe bleue</p>
-          <span class="text-5xl cartoon-number">330</span>
-        </div>
-      </section>
-
-      <!-- COLONNE CENTRALE : CARTE CIBLE -->
-      <section class="flex flex-col items-center justify-center gap-6">
-        <div class="relative w-96 h-60 flex items-center justify-center">
-          <img 
-            src="assets/cartes cible.svg" 
-            alt="Carte Cible" 
-            class="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
-          />
-          <span class="relative z-10 text-8xl cartoon-number">
-            500
-          </span>
-        </div>
-
-        <div class="bg-slate-900/80 border border-white/20 px-6 py-2.5 rounded-full text-sm tracking-wide">
-          En attente des joueurs...
-        </div>
-      </section>
-
-      <!-- COLONNE DROITE : ÉQUIPE ROUGE -->
-      <section class="h-full flex flex-col justify-between py-4 px-6">
-        <div class="text-center">
-          <h2 class="text-2xl font-bold text-white drop-shadow">Équipe Rouge</h2>
-          <p class="text-xl font-bold text-slate-900 mt-3">6 cartes</p>
-        </div>
-
-        <!-- Pouvoirs (aperçu visuel) -->
-        <div class="flex justify-center gap-3 my-auto">
-          <div class="w-20 h-28 rounded-xl bg-amber-400 border-2 border-white shadow-lg flex flex-col items-center justify-center text-center p-1 text-slate-950 font-bold text-xs">
-            <span>Plus</span>
-            <span class="text-lg font-cartoon">200</span>
-            <span>Moins</span>
-          </div>
-          <div class="w-20 h-28 rounded-xl bg-amber-400 border-2 border-white shadow-lg flex items-center justify-center text-center p-2 text-slate-950 font-bold text-xs">
-            Changer de cartes
-          </div>
-          <div class="w-20 h-28 rounded-xl bg-amber-400 border-2 border-white shadow-lg flex items-center justify-center text-center p-2 text-slate-950 font-bold text-xs">
-            Jouer 2 cartes
-          </div>
-        </div>
-
-        <!-- Emplacement carte jouée -->
-        <div class="w-full h-44 rounded-2xl border-4 border-white/80 bg-rose-500/30 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center shadow-xl">
-          <p class="text-sm text-white font-semibold mb-2">Exemple de question posée par l'équipe rouge</p>
-          <span class="text-5xl cartoon-number">680</span>
-        </div>
-      </section>
-
-    </main>
+    <!-- COMPTEUR ÉQUIPE ROUGE (Dans le cartouche jaune à droite) -->
+    <div class="absolute top-[25.5%] right-[4.2%] w-[26.5%] h-[6%] flex items-center justify-center">
+      <span class="text-black font-bold text-2xl">6 cartes</span>
+    </div>
 
   </div>
 
