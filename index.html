@@ -92,7 +92,7 @@
       dominant-baseline: central;
     }
 
-    /* Texte seul de question sur la TV (sans cartesquestion.svg) */
+    /* Texte seul de question sur la TV (agrandi + sans débordement) */
     .tv-question-box {
       width: 100%;
       height: 100%;
@@ -100,30 +100,29 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 36px;
+      padding: 14px 28px;
       text-align: center;
       color: #ffffff;
-      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.75);
+      text-shadow: 0 5px 14px rgba(0, 0, 0, 0.85);
       font-family: 'MontserratCustom', sans-serif;
       font-weight: 700;
-      font-size: 44px;
-      line-height: 1.25;
-      gap: 10px;
-    }
-
-    .tv-question-box.dual {
-      font-size: 34px;
-      line-height: 1.2;
+      font-size: 64px;
+      line-height: 1.18;
+      gap: 12px;
+      overflow: hidden;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
 
     .tv-power-tag {
       background-color: #fbbf24;
       color: #020617;
-      padding: 6px 20px;
+      padding: 6px 22px;
       border-radius: 999px;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       text-shadow: none;
+      flex-shrink: 0;
     }
 
     .tv-revealed-value {
@@ -397,6 +396,12 @@
       dominant-baseline: central;
     }
 
+    /* Groupe animé du carrousel de cartes */
+    .carousel-card-group {
+      will-change: transform;
+    }
+
+    /* Texte à l'intérieur de la carte agrandie (strictement dans la zone blanche) */
     .mobile-card-text {
       width: 100%;
       height: 100%;
@@ -404,18 +409,21 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 36px 52px;
+      padding: 46px 64px;
       text-align: center;
       color: #0f172a;
       font-family: 'MontserratCustom', sans-serif;
       font-weight: 700;
-      font-size: 44px;
-      line-height: 1.25;
+      font-size: 56px;
+      line-height: 1.18;
+      overflow: hidden;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
 
     .nav-arrow {
       cursor: pointer;
-      opacity: 0.92;
+      opacity: 0.94;
     }
 
     .nav-arrow:active {
@@ -426,7 +434,6 @@
       cursor: pointer;
     }
 
-    /* Indicateur discret de reconnexion en cours */
     #reconnect-pill {
       display: none;
       position: fixed;
@@ -443,7 +450,6 @@
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
     }
 
-    /* Bandeau d'état actif d'un pouvoir sur mobile */
     #mobile-active-banner {
       display: none;
       position: fixed;
@@ -461,7 +467,6 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.6);
     }
 
-    /* Écran d'attente après validation de la carte */
     #mobile-locked-overlay {
       display: none;
       position: fixed;
@@ -513,7 +518,7 @@
       <image id="tv-blue-pwr-1-x" href="assets/Faux.svg" x="560" y="960" width="210" height="210" style="display:none;" />
       <image id="tv-blue-pwr-2-x" href="assets/Faux.svg" x="835" y="960" width="210" height="210" style="display:none;" />
 
-      <!-- Nombre Cible Central -->
+      <!-- Nombre Cible Central (toujours 500 au début) -->
       <text id="tv-target" x="1920" y="1080" class="target-number">500</text>
 
       <!-- Équipe Rouge -->
@@ -525,22 +530,22 @@
       <image id="tv-red-pwr-1-x" href="assets/Faux.svg" x="3070" y="960" width="210" height="210" style="display:none;" />
       <image id="tv-red-pwr-2-x" href="assets/Faux.svg" x="3345" y="960" width="210" height="210" style="display:none;" />
 
-      <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Bas Gauche - Texte seul + Valeur Balloon) -->
+      <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Bas Gauche - Texte agrandi & cadré + Valeur Balloon) -->
       <g id="tv-blue-reveal" style="display: none;">
-        <foreignObject x="180" y="1400" width="970" height="360">
+        <foreignObject x="165" y="1375" width="1000" height="390">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-blue-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-blue-value" x="665" y="1855" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-blue-verdict" href="" x="525" y="1460" width="280" height="280" style="display:none;" />
+        <text id="tv-blue-value" x="665" y="1865" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-blue-verdict" href="" x="525" y="1450" width="280" height="280" style="display:none;" />
       </g>
 
-      <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Bas Droite - Texte seul + Valeur Balloon) -->
+      <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Bas Droite - Texte agrandi & cadré + Valeur Balloon) -->
       <g id="tv-red-reveal" style="display: none;">
-        <foreignObject x="2690" y="1400" width="970" height="360">
+        <foreignObject x="2675" y="1375" width="1000" height="390">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-red-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-red-value" x="3175" y="1855" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-red-verdict" href="" x="3035" y="1460" width="280" height="280" style="display:none;" />
+        <text id="tv-red-value" x="3175" y="1865" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-red-verdict" href="" x="3035" y="1450" width="280" height="280" style="display:none;" />
       </g>
     </svg>
 
@@ -600,6 +605,13 @@
     <!-- Étape 2 : Plateau Joueur Portrait 1206x2622 -->
     <div id="player-board-screen">
       <svg viewBox="0 0 1206 2622" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- Masque de découpe pour que le carrousel sorte proprement sur les côtés -->
+          <clipPath id="carousel-clip">
+            <rect x="115" y="560" width="976" height="1400" />
+          </clipPath>
+        </defs>
+
         <image id="player-bg-img" href="" x="0" y="0" width="1206" height="2622" />
 
         <!-- Compteur cartes restantes dans la case grise de gauche -->
@@ -611,32 +623,51 @@
         <!-- Zone cliquable Menu Burger (haut droite) -->
         <rect id="mob-burger-hit" class="hit-area" x="945" y="65" width="175" height="145" fill="transparent" />
 
-        <!-- =====================================
-             CARTE QUESTION SUPÉRIEURE (Max 3 cartes)
-             ===================================== -->
-        <image href="assets/cartesquestion.svg" x="175" y="615" width="856" height="475" preserveAspectRatio="none" />
-        <foreignObject x="175" y="615" width="856" height="475">
-          <div xmlns="http://www.w3.org/1999/xhtml" id="card-top-text" class="mobile-card-text"></div>
-        </foreignObject>
+        <!-- Zone clippée contenant les 2 carrousels animés -->
+        <g clip-path="url(#carousel-clip)">
+          <!-- =====================================
+               CARTE QUESTION SUPÉRIEURE AGRANDIE (936x525)
+               ===================================== -->
+          <g id="top-card-group" class="carousel-card-group">
+            <image href="assets/cartesquestion.svg" x="135" y="585" width="936" height="525" preserveAspectRatio="none" />
+            <foreignObject x="135" y="585" width="936" height="525">
+              <div xmlns="http://www.w3.org/1999/xhtml" id="card-top-text" class="mobile-card-text"></div>
+            </foreignObject>
+          </g>
 
-        <!-- Flèches indépendantes ligne du haut -->
-        <polyline id="top-prev" class="nav-arrow" points="135,785 75,852 135,920" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
-        <polyline id="top-next" class="nav-arrow" points="1071,785 1131,852 1071,920" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+          <!-- =====================================
+               CARTE QUESTION INFÉRIEURE AGRANDIE (936x525)
+               ===================================== -->
+          <g id="bottom-card-group" class="carousel-card-group">
+            <image href="assets/cartesquestion.svg" x="135" y="1365" width="936" height="525" preserveAspectRatio="none" />
+            <foreignObject x="135" y="1365" width="936" height="525">
+              <div xmlns="http://www.w3.org/1999/xhtml" id="card-bottom-text" class="mobile-card-text"></div>
+            </foreignObject>
+          </g>
+        </g>
+
+        <!-- Flèches indépendantes ligne du haut (avec zone tactile élargie) -->
+        <g id="top-prev" class="nav-arrow">
+          <rect x="10" y="750" width="115" height="200" fill="transparent" />
+          <polyline points="92,785 38,848 92,910" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+        <g id="top-next" class="nav-arrow">
+          <rect x="1081" y="750" width="115" height="200" fill="transparent" />
+          <polyline points="1114,785 1168,848 1114,910" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
 
         <!-- Bouton "Choisir cette carte" (Haut) -->
         <rect id="choose-top-btn" class="hit-area" x="285" y="1145" width="636" height="115" rx="57" fill="transparent" />
 
-        <!-- =====================================
-             CARTE QUESTION INFÉRIEURE (Max 3 cartes)
-             ===================================== -->
-        <image href="assets/cartesquestion.svg" x="175" y="1395" width="856" height="475" preserveAspectRatio="none" />
-        <foreignObject x="175" y="1395" width="856" height="475">
-          <div xmlns="http://www.w3.org/1999/xhtml" id="card-bottom-text" class="mobile-card-text"></div>
-        </foreignObject>
-
-        <!-- Flèches indépendantes ligne du bas -->
-        <polyline id="bottom-prev" class="nav-arrow" points="135,1565 75,1632 135,1700" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
-        <polyline id="bottom-next" class="nav-arrow" points="1071,1565 1131,1632 1071,1700" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        <!-- Flèches indépendantes ligne du bas (avec zone tactile élargie) -->
+        <g id="bottom-prev" class="nav-arrow">
+          <rect x="10" y="1530" width="115" height="200" fill="transparent" />
+          <polyline points="92,1565 38,1628 92,1690" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+        <g id="bottom-next" class="nav-arrow">
+          <rect x="1081" y="1530" width="115" height="200" fill="transparent" />
+          <polyline points="1114,1565 1168,1628 1114,910" fill="none" stroke="#e2e8f0" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
 
         <!-- Bouton "Choisir cette carte" (Bas) -->
         <rect id="choose-bottom-btn" class="hit-area" x="285" y="1925" width="636" height="115" rx="57" fill="transparent" />
@@ -714,7 +745,7 @@
       <h2>Règles du jeu — 0 à 1000</h2>
       <div class="rules-list">
         <p><strong>But du jeu :</strong> Soyez la première équipe à vous débarrasser de toutes vos cartes Question (arriver à <strong>0 carte</strong>).</p>
-        <p><strong>Déroulement d'une manche :</strong> Chaque équipe possède 6 cartes Question au départ (réponses entre 0 et 1000). Choisissez secrètement la carte dont la réponse vous semble la plus proche du <strong>nombre cible</strong> au centre de la TV.</p>
+        <p><strong>Déroulement d'une manche :</strong> Chaque équipe possède 6 cartes Question au départ (réponses entre 0 et 1000). Choisissez secrètement la carte dont la réponse vous semble la plus proche du <strong>nombre cible</strong> (qui démarre toujours à <strong>500</strong>).</p>
         <p><strong>Révélation :</strong> Une fois les 2 équipes prêtes, les valeurs s'affichent après un suspense de 2 secondes. L'équipe la plus proche remporte la manche, défausse sa carte, et sa valeur devient la <strong>nouvelle cible</strong>. L'équipe la plus éloignée défausse sa carte et en pioche une nouvelle.</p>
         <p><strong>Pouvoir Plus / Moins 200 :</strong> Ajoutez ou soustrayez 200 à la valeur de votre carte avant la révélation.</p>
         <p><strong>Pouvoir Changer de carte :</strong> Remplacez l'une de vos cartes Question par une nouvelle carte de la pioche.</p>
@@ -734,7 +765,7 @@
 
   <script>
     // =========================================
-    // UTILITAIRES : PIOCHE, WAKE LOCK & AUDIO
+    // UTILITAIRES : PIOCHE, AUTO-FIT TEXTE & AUDIO
     // =========================================
     const BASE_POOL = (typeof QUESTIONS_0_A_1000 !== 'undefined' && QUESTIONS_0_A_1000.length > 0)
       ? QUESTIONS_0_A_1000
@@ -752,16 +783,24 @@
       return copy;
     }
 
-    // Empêche la mise en veille de l'écran sur smartphone (Screen Wake Lock API)
+    // Ajuste automatiquement la taille de police pour qu'elle soit grande mais ne déborde jamais
+    function fitTextInBox(el, maxFontSize, minFontSize) {
+      if (!el) return;
+      let size = maxFontSize;
+      el.style.fontSize = size + 'px';
+      while (size > minFontSize && (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)) {
+        size -= 2;
+        el.style.fontSize = size + 'px';
+      }
+    }
+
     let wakeLockSentinel = null;
     async function requestScreenWakeLock() {
       try {
         if ('wakeLock' in navigator) {
           wakeLockSentinel = await navigator.wakeLock.request('screen');
         }
-      } catch (e) {
-        // Ignoré silencieusement si non supporté ou batterie faible
-      }
+      } catch (e) {}
     }
 
     function playSuspenseSound(durationSec = 2.0) {
@@ -830,7 +869,8 @@
 
       function initGame(resetConnections = false) {
         deck = shuffleArray(BASE_POOL);
-        targetNumber = Math.floor(Math.random() * 801) + 100;
+        // La cible démarre TOUJOURS à 500 au début de la partie
+        targetNumber = 500;
         document.getElementById('tv-target').textContent = targetNumber;
 
         ['blue', 'red'].forEach(team => {
@@ -882,7 +922,6 @@
       function renderTeamSubmissionOnTv(team, sub) {
         const box = document.getElementById(`tv-${team}-question-text`);
         box.innerHTML = '';
-        box.classList.toggle('dual', sub.cards.length > 1);
 
         if (sub.powerLabel) {
           const tag = document.createElement('div');
@@ -900,6 +939,12 @@
         document.getElementById(`tv-${team}-value`).style.display = 'none';
         document.getElementById(`tv-${team}-verdict`).style.display = 'none';
         document.getElementById(`tv-${team}-reveal`).style.display = 'block';
+
+        // Ajuste automatiquement la police sur la TV pour être bien grande sans jamais déborder
+        requestAnimationFrame(() => {
+          const maxSz = sub.cards.length > 1 ? 54 : 74;
+          fitTextInBox(box, maxSz, 36);
+        });
       }
 
       function computeEffectiveValue(sub) {
@@ -1019,7 +1064,6 @@
         });
 
         conn.on('data', (data) => {
-          // Prise d'équipe OU reconnexion transparente après verrouillage d'écran
           if (data.type === 'CLAIM_TEAM') {
             const canJoin = !gameState[data.team].connected || data.isReconnect === true;
             if (canJoin) {
@@ -1114,7 +1158,7 @@
     }
 
     // =========================================
-    // LOGIQUE SMARTPHONE (JOUEUR + ANTI-VEILLE)
+    // LOGIQUE SMARTPHONE (JOUEUR + CARROUSEL + ANTI-VEILLE)
     // =========================================
     if (isMobileMode) {
       tvView.style.display = 'none';
@@ -1133,6 +1177,8 @@
       let bottomRow = [];
       let topIndex = 0;
       let bottomIndex = 0;
+      let isTopAnimating = false;
+      let isBottomAnimating = false;
 
       let peer = null;
       let hostConn = null;
@@ -1141,7 +1187,6 @@
       let activeRoundPower = null;
       let pendingPowerModalIndex = null;
 
-      // Blocage du retour arrière navigateur
       history.pushState(null, '', location.href);
       window.addEventListener('popstate', () => {
         history.pushState(null, '', location.href);
@@ -1153,7 +1198,6 @@
           reconnectPill.style.display = 'none';
           connMsg.textContent = 'Connecté à la TV ! Choisissez votre équipe.';
 
-          // Si le téléphone avait déjà une équipe avant le verrouillage, il la récupère aussitôt
           if (myTeam) {
             conn.send({ type: 'CLAIM_TEAM', team: myTeam, isReconnect: true });
           }
@@ -1188,7 +1232,6 @@
             document.getElementById('player-board-screen').style.display = 'flex';
             refreshMobileUI();
 
-            // Restaure l'état verrouillé si la carte de cette manche avait déjà été jouée
             if (data.pendingSubmission && data.pendingSubmission.cards) {
               const summary = data.pendingSubmission.cards.map(c => c.question).join(' | ');
               document.getElementById('chosen-card-reminder').textContent = summary;
@@ -1270,10 +1313,8 @@
         }, 2500);
       }
 
-      // Initialisation de la connexion
       ensureConnectedToHost();
 
-      // Reconnexion automatique immédiate au déverrouillage de l'écran / retour sur l'onglet
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           if (myTeam) requestScreenWakeLock();
@@ -1290,7 +1331,6 @@
         ensureConnectedToHost();
       });
 
-      // Heartbeat toutes les 5 secondes pour détecter une coupure silencieuse iOS/Android
       setInterval(() => {
         if (document.visibilityState === 'visible') {
           if (!hostConn || !hostConn.open) {
@@ -1340,6 +1380,12 @@
         if (topIndex >= topRow.length) topIndex = 0;
         if (bottomIndex >= bottomRow.length) bottomIndex = 0;
 
+        // Opacité des flèches si 1 seule carte sur la ligne
+        document.getElementById('top-prev').style.opacity = topRow.length > 1 ? '0.95' : '0.25';
+        document.getElementById('top-next').style.opacity = topRow.length > 1 ? '0.95' : '0.25';
+        document.getElementById('bottom-prev').style.opacity = bottomRow.length > 1 ? '0.95' : '0.25';
+        document.getElementById('bottom-next').style.opacity = bottomRow.length > 1 ? '0.95' : '0.25';
+
         renderRows();
       }
 
@@ -1349,6 +1395,60 @@
 
         topDiv.textContent = topRow[topIndex] ? topRow[topIndex].question : 'Aucune carte';
         botDiv.textContent = bottomRow[bottomIndex] ? bottomRow[bottomIndex].question : 'Aucune carte';
+
+        // Ajuste automatiquement la police (grande par défaut 58px, réduite uniquement si texte très long)
+        fitTextInBox(topDiv, 58, 38);
+        fitTextInBox(botDiv, 58, 38);
+      }
+
+      // Animation carrousel fluide (sortie d'un côté + entrée de l'autre côté)
+      function animateCarouselRow(rowKey, direction) {
+        const isTop = rowKey === 'top';
+        const row = isTop ? topRow : bottomRow;
+        if (row.length <= 1) return;
+        if (isTop && isTopAnimating) return;
+        if (!isTop && isBottomAnimating) return;
+
+        if (isTop) isTopAnimating = true;
+        else isBottomAnimating = true;
+
+        const group = document.getElementById(isTop ? 'top-card-group' : 'bottom-card-group');
+        const exitX = direction === 'next' ? -1150 : 1150;
+        const enterX = direction === 'next' ? 1150 : -1150;
+
+        // Étape 1 : la carte actuelle glisse hors de l'écran avec son texte
+        group.style.transition = 'transform 0.22s cubic-bezier(0.4, 0, 1, 1)';
+        group.style.transform = `translateX(${exitX}px)`;
+
+        setTimeout(() => {
+          // Mise à jour de l'index et du texte pendant que la carte est hors champ
+          if (isTop) {
+            topIndex = direction === 'next'
+              ? (topIndex + 1) % topRow.length
+              : (topIndex - 1 + topRow.length) % topRow.length;
+          } else {
+            bottomIndex = direction === 'next'
+              ? (bottomIndex + 1) % bottomRow.length
+              : (bottomIndex - 1 + bottomRow.length) % bottomRow.length;
+          }
+          renderRows();
+
+          // Téléportation instantanée de l'autre côté hors de l'écran
+          group.style.transition = 'none';
+          group.style.transform = `translateX(${enterX}px)`;
+
+          // Forcer le recalcul de style (reflow)
+          void group.getBoundingClientRect();
+
+          // Étape 2 : la nouvelle carte glisse jusqu'au centre
+          group.style.transition = 'transform 0.26s cubic-bezier(0.16, 1, 0.3, 1)';
+          group.style.transform = 'translateX(0px)';
+
+          setTimeout(() => {
+            if (isTop) isTopAnimating = false;
+            else isBottomAnimating = false;
+          }, 270);
+        }, 220);
       }
 
       function updateActiveBanner() {
@@ -1373,27 +1473,10 @@
         }
       }
 
-      document.getElementById('top-prev').addEventListener('click', () => {
-        if (topRow.length <= 1) return;
-        topIndex = (topIndex - 1 + topRow.length) % topRow.length;
-        renderRows();
-      });
-      document.getElementById('top-next').addEventListener('click', () => {
-        if (topRow.length <= 1) return;
-        topIndex = (topIndex + 1) % topRow.length;
-        renderRows();
-      });
-
-      document.getElementById('bottom-prev').addEventListener('click', () => {
-        if (bottomRow.length <= 1) return;
-        bottomIndex = (bottomIndex - 1 + bottomRow.length) % bottomRow.length;
-        renderRows();
-      });
-      document.getElementById('bottom-next').addEventListener('click', () => {
-        if (bottomRow.length <= 1) return;
-        bottomIndex = (bottomIndex + 1) % bottomRow.length;
-        renderRows();
-      });
+      document.getElementById('top-prev').addEventListener('click', () => animateCarouselRow('top', 'prev'));
+      document.getElementById('top-next').addEventListener('click', () => animateCarouselRow('top', 'next'));
+      document.getElementById('bottom-prev').addEventListener('click', () => animateCarouselRow('bottom', 'prev'));
+      document.getElementById('bottom-next').addEventListener('click', () => animateCarouselRow('bottom', 'next'));
 
       function handleSelectCard(card) {
         if (!card) return;
