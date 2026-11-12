@@ -808,4 +808,677 @@
         ['blue', 'red'].forEach(team => {
           if (resetConnections) gameState[team].connected = false;
           gameState[team].hand = drawCards(6);
-          gameState[team].powersUsed =
+          gameState[team].powersUsed = [false, false, false];
+          gameState[team].submission = null;
+
+          // Cacher révélations et croix pouvoirs sur la TV
+          document.getElementById(`tv-${team}-reveal`).style.display = 'none';
+          document.getElementById(`tv-${team}-value`).style.display = 'none';
+          document.getElementById(`tv-${team}-verdict`).style.display = 'none';
+          for (let p = 0; p < 3; p++) {
+            document.getElementById(`tv-${team}-pwr-${p}-x`).style.display = 'none';
+          }
+        });
+
+        updateTvCounters();
+        broadcastSync();
+      }
+
+      function updateTvCounters() {
+        const bCount = gameState.blue.hand.length;
+        const rCount = gameState.red.hand.length;
+        document.getElementById('tv-blue-count').textContent = `${bCount} ${bCount > 1 ? 'cartes' : 'carte'}`;
+        document.getElementById('tv-red-count').textContent = `${rCount} ${rCount > 1 ? 'cartes' : 'carte'}`;
+      }
+
+      function broadcastSync() {
+        connections.forEach(conn => {
+          if (conn.open) {
+            conn.send({
+              type: 'SYNC_STATE',
+              takenTeams: { blue: gameState.blue.connected, red: gameState.red.connected },
+              hands: { blue: gameState.blue.hand, red: gameState.red.hand },
+              powersUsed: { blue: gameState.blue.powersUsed, red: gameState.red.powersUsed }
+            });
+          }
+        });
+      }
+
+      function sendToTeam(team, payload) {
+        connections.forEach(conn => {
+          if (conn.open && conn.team === team) {
+            conn.send(payload);
+          }
+        });
+      }
+
+      // Affichage de la question seule sur la TV dès qu'une équipe joue
+      function renderTeamSubmissionOnTv(team, sub) {
+        const box = document.getElementById(`tv-${team}-question-text`);
+        box.innerHTML = '';
+        box.classList.toggle('dual', sub.cards.length > 1);
+
+        if (sub.powerLabel) {
+          const tag = document.createElement('div');
+          tag.className = 'tv-power-tag';
+          tag.textContent = sub.powerLabel;
+          box.appendChild(tag);
+        }
+
+        sub.cards.forEach((c, idx) => {
+          const p = document.createElement('div');
+          p.textContent = sub.cards.length > 1 ? `${idx + 1}. ${c.question}` : c.question;
+          box.appendChild(p);
+        });
+
+        document.getElementById(`tv-${team}-value`).style.display = 'none';
+        document.getElementById(`tv-${team}-verdict`).style.display = 'none';
+        document.getElementById(`tv-${team}-reveal`).style.display = 'block';
+      }
+
+      // Calcul de la valeur effective d'une soumission
+      function computeEffectiveValue(sub) {
+        if (sub.cards.length === 1) {
+          let val = sub.cards[0].value;
+          if (sub.modifier === 'PLUS_200') val += 200;
+          if (sub.modifier === 'MINUS_200') val -= 200;
+          return val;
+        } else {
+          const v1 = sub.cards[0].value;
+          const v2 = sub.cards[1].value;
+          return sub.modifier === 'DIFF' ? Math.abs(v1 - v2) : (v1 + v2);
+        }
+      }
+
+      // Résolution complète de la manche après le suspense de 2 secondes
+      function resolveRound() {
+        const subB = gameState.blue.submission;
+        const subR = gameState.red.submission;
+        if (!subB || !subR) return;
+
+        playSuspenseSound(2.0);
+
+        setTimeout(() => {
+          const valB = computeEffectiveValue(subB);
+          const valR = computeEffectiveValue(subR);
+
+          const textB = document.getElementById('tv-blue-value');
+          const textR = document.getElementById('tv-red-value');
+          textB.textContent = valB;
+          textR.textContent = valR;
+          textB.style.display = 'block';
+          textR.style.display = 'block';
+
+          const diffB = Math.abs(valB - targetNumber);
+          const diffR = Math.abs(valR - targetNumber);
+
+          const blueWins = diffB <= diffR;
+          const winner = blueWins ? 'blue' : 'red';
+          const loser = blueWins ? 'red' : 'blue';
+
+          const verdictB = document.getElementById('tv-blue-verdict');
+          const verdictR = document.getElementById('tv-red-verdict');
+          verdictB.setAttribute('href', blueWins ? 'assets/vrai.svg' : 'assets/Faux.svg');
+          verdictR.setAttribute('href', blueWins ? 'assets/Faux.svg' : 'assets/vrai.svg');
+          verdictB.style.display = 'block';
+          verdictR.style.display = 'block';
+
+          // Retirer les cartes jouées des mains
+          const playedIdsB = new Set(subB.cards.map(c => c.id));
+          const playedIdsR = new Set(subR.cards.map(c => c.id));
+          gameState.blue.hand = gameState.blue.hand.filter(c => !playedIdsB.has(c.id));
+          gameState.red.hand = gameState.red.hand.filter(c => !playedIdsR.has(c.id));
+
+          // Le gagnant voit sa valeur devenir la nouvelle cible
+          targetNumber = blueWins ? valB : valR;
+          document.getElementById('tv-target').textContent = targetNumber;
+
+          // Gestion du perdant :
+          const loserSub = gameState[loser].submission;
+          if (loserSub.cards.length === 2) {
+            // Pouvoir "Jouer 2 cartes" perdu : le perdant choisit laquelle des 2 cartes devient la nouvelle cible
+            sendToTeam(loser, {
+              type: 'CHOOSE_NEXT_TARGET',
+              cards: loserSub.cards
+            });
+            // Le perdant reprend 2 cartes
+            gameState[loser].hand.push(...drawCards(2));
+          } else {
+            // Perdant classique : pioche 1 nouvelle carte
+            gameState[loser].hand.push(...drawCards(1));
+          }
+
+          updateTvCounters();
+
+          // Vérification de victoire (0 carte restante)
+          if (gameState[winner].hand.length === 0) {
+            const winName = winner === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
+            document.getElementById('victory-title').textContent = `Victoire de l'${winName} !`;
+            document.getElementById('victory-modal').style.display = 'flex';
+            connections.forEach(c => {
+              if (c.open) c.send({ type: 'GAME_OVER', winnerName: winName });
+            });
+            return;
+          }
+
+          // Préparer la manche suivante après 4,5 secondes de lecture du résultat
+          setTimeout(() => {
+            gameState.blue.submission = null;
+            gameState.red.submission = null;
+            document.getElementById('tv-blue-reveal').style.display = 'none';
+            document.getElementById('tv-red-reveal').style.display = 'none';
+
+            broadcastSync();
+            connections.forEach(c => {
+              if (c.open) c.send({ type: 'NEW_ROUND' });
+            });
+          }, 4500);
+
+        }, 2000);
+      }
+
+      // Initialisation PeerJS
+      const roomId = 'zero1000-' + Math.random().toString(36).substring(2, 8);
+      const peer = new Peer(roomId);
+
+      peer.on('open', (id) => {
+        const mobileUrl = new URL(window.location.href);
+        mobileUrl.searchParams.set('mode', 'mobile');
+        mobileUrl.searchParams.set('host', id);
+
+        new QRCode(document.getElementById('qrcode'), {
+          text: mobileUrl.toString(),
+          width: 240,
+          height: 240,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      });
+
+      peer.on('connection', (conn) => {
+        connections.push(conn);
+
+        conn.on('open', () => {
+          broadcastSync();
+        });
+
+        conn.on('data', (data) => {
+          if (data.type === 'CLAIM_TEAM') {
+            if (!gameState[data.team].connected) {
+              gameState[data.team].connected = true;
+              conn.team = data.team;
+              conn.send({
+                type: 'CLAIM_ACCEPTED',
+                team: data.team,
+                hand: gameState[data.team].hand,
+                powersUsed: gameState[data.team].powersUsed
+              });
+              broadcastSync();
+
+              const badge = document.getElementById(`badge-${data.team}`);
+              badge.textContent = data.team === 'blue' ? 'Équipe Bleue : Connectée' : 'Équipe Rouge : Connectée';
+              badge.classList.add(`connected-${data.team}`);
+            } else {
+              conn.send({ type: 'CLAIM_REJECTED' });
+            }
+          }
+
+          if (data.type === 'USE_POWER') {
+            const { team, powerIndex } = data;
+            gameState[team].powersUsed[powerIndex] = true;
+            document.getElementById(`tv-${team}-pwr-${powerIndex}-x`).style.display = 'block';
+
+            // Pouvoir 1 : Changer de carte (remplace la carte choisie par une nouvelle de la pioche)
+            if (powerIndex === 1 && typeof data.replaceCardId === 'number') {
+              const idx = gameState[team].hand.findIndex(c => c.id === data.replaceCardId);
+              if (idx !== -1) {
+                gameState[team].hand[idx] = drawCards(1)[0];
+              }
+            }
+            broadcastSync();
+          }
+
+          if (data.type === 'SUBMIT_CARDS') {
+            const { team, cards, modifier, powerLabel } = data;
+            gameState[team].submission = { cards, modifier, powerLabel };
+            renderTeamSubmissionOnTv(team, gameState[team].submission);
+
+            if (gameState.blue.submission && gameState.red.submission) {
+              resolveRound();
+            }
+          }
+
+          if (data.type === 'SET_NEXT_TARGET') {
+            targetNumber = data.value;
+            document.getElementById('tv-target').textContent = targetNumber;
+          }
+        });
+      });
+
+      // Démarrer la première partie
+      initGame(true);
+
+      // Boutons QR & Menu Burger TV
+      document.getElementById('qr-close-btn').addEventListener('click', () => {
+        document.getElementById('qr-overlay').style.display = 'none';
+      });
+
+      document.getElementById('tv-burger-btn').addEventListener('click', () => {
+        document.getElementById('tv-menu-modal').style.display = 'flex';
+      });
+
+      document.getElementById('tv-menu-close').addEventListener('click', () => {
+        document.getElementById('tv-menu-modal').style.display = 'none';
+      });
+
+      document.getElementById('tv-menu-rules').addEventListener('click', () => {
+        document.getElementById('tv-menu-modal').style.display = 'none';
+        document.getElementById('rules-modal').style.display = 'flex';
+      });
+
+      document.getElementById('tv-menu-qr').addEventListener('click', () => {
+        document.getElementById('tv-menu-modal').style.display = 'none';
+        document.getElementById('qr-overlay').style.display = 'flex';
+      });
+
+      document.getElementById('tv-menu-restart').addEventListener('click', () => {
+        document.getElementById('tv-menu-modal').style.display = 'none';
+        document.getElementById('tv-restart-confirm-modal').style.display = 'flex';
+      });
+
+      document.getElementById('tv-restart-no').addEventListener('click', () => {
+        document.getElementById('tv-restart-confirm-modal').style.display = 'none';
+      });
+
+      document.getElementById('tv-restart-yes').addEventListener('click', () => {
+        document.getElementById('tv-restart-confirm-modal').style.display = 'none';
+        document.getElementById('victory-modal').style.display = 'none';
+        initGame(false);
+        connections.forEach(c => {
+          if (c.open) c.send({ type: 'NEW_ROUND' });
+        });
+      });
+    }
+
+    // =========================================
+    // LOGIQUE SMARTPHONE (JOUEUR)
+    // =========================================
+    if (isMobileMode) {
+      tvView.style.display = 'none';
+      mobileView.style.display = 'block';
+
+      const btnBlue = document.getElementById('select-blue');
+      const btnRed = document.getElementById('select-red');
+      const connMsg = document.getElementById('connection-msg');
+
+      let myTeam = null;
+      let myHand = [];
+      let powersUsed = [false, false, false];
+      let topRow = [];
+      let bottomRow = [];
+      let topIndex = 0;
+      let bottomIndex = 0;
+      let hostConn = null;
+
+      // État actif d'un pouvoir pendant le tour
+      let activeRoundPower = null; // { type: 'PLUS_200'|'MINUS_200'|'CHANGE_CARD'|'TWO_SUM'|'TWO_DIFF', firstCard: null }
+      let pendingPowerModalIndex = null;
+
+      if (hostPeerIdFromUrl) {
+        const peer = new Peer();
+        peer.on('open', () => {
+          hostConn = peer.connect(hostPeerIdFromUrl);
+
+          hostConn.on('open', () => {
+            connMsg.textContent = 'Connecté à la TV ! Choisissez votre équipe.';
+          });
+
+          hostConn.on('data', (data) => {
+            if (data.type === 'SYNC_STATE') {
+              btnBlue.disabled = data.takenTeams.blue;
+              btnBlue.textContent = data.takenTeams.blue ? 'Équipe Bleue (Déjà prise)' : 'Équipe Bleue';
+              btnRed.disabled = data.takenTeams.red;
+              btnRed.textContent = data.takenTeams.red ? 'Équipe Rouge (Déjà prise)' : 'Équipe Rouge';
+
+              if (myTeam && data.hands[myTeam]) {
+                myHand = data.hands[myTeam];
+                powersUsed = data.powersUsed[myTeam];
+                refreshMobileUI();
+              }
+            }
+
+            if (data.type === 'CLAIM_ACCEPTED') {
+              myTeam = data.team;
+              myHand = data.hand;
+              powersUsed = data.powersUsed;
+              document.getElementById('player-bg-img').setAttribute(
+                'href',
+                myTeam === 'blue' ? 'assets/player/Fond_player_bleu.jpg' : 'assets/player/fond_player_rouge.jpg'
+              );
+              document.getElementById('team-select-screen').style.display = 'none';
+              document.getElementById('player-board-screen').style.display = 'flex';
+              refreshMobileUI();
+            }
+
+            if (data.type === 'NEW_ROUND') {
+              activeRoundPower = null;
+              updateActiveBanner();
+              document.getElementById('mobile-locked-overlay').style.display = 'none';
+            }
+
+            if (data.type === 'CHOOSE_NEXT_TARGET') {
+              const [c1, c2] = data.cards;
+              const b1 = document.getElementById('pick-target-card-1');
+              const b2 = document.getElementById('pick-target-card-2');
+              b1.textContent = `${c1.question} (${c1.value})`;
+              b2.textContent = `${c2.question} (${c2.value})`;
+
+              b1.onclick = () => {
+                if (hostConn && hostConn.open) hostConn.send({ type: 'SET_NEXT_TARGET', value: c1.value });
+                document.getElementById('two-cards-loser-modal').style.display = 'none';
+              };
+              b2.onclick = () => {
+                if (hostConn && hostConn.open) hostConn.send({ type: 'SET_NEXT_TARGET', value: c2.value });
+                document.getElementById('two-cards-loser-modal').style.display = 'none';
+              };
+              document.getElementById('two-cards-loser-modal').style.display = 'flex';
+            }
+
+            if (data.type === 'GAME_OVER') {
+              document.getElementById('victory-title').textContent = `Victoire de l'${data.winnerName} !`;
+              document.getElementById('victory-modal').style.display = 'flex';
+            }
+          });
+        });
+      }
+
+      btnBlue.addEventListener('click', () => {
+        if (hostConn && hostConn.open) hostConn.send({ type: 'CLAIM_TEAM', team: 'blue' });
+      });
+      btnRed.addEventListener('click', () => {
+        if (hostConn && hostConn.open) hostConn.send({ type: 'CLAIM_TEAM', team: 'red' });
+      });
+
+      // Répartition stricte : maximum 3 cartes par ligne
+      function refreshMobileUI() {
+        const total = myHand.length;
+        document.getElementById('mob-cards-count').textContent = `${total} ${total > 1 ? 'cartes' : 'carte'}`;
+
+        const remainingPowers = powersUsed.filter(u => !u).length;
+        document.getElementById('mob-powers-count').textContent = `${remainingPowers} ⚡`;
+
+        // Croix rouges Faux.svg et verrouillage sur les pouvoirs utilisés
+        for (let i = 0; i < 3; i++) {
+          const xImg = document.getElementById(`mob-pwr-${i}-x`);
+          const hit = document.getElementById(`mob-pwr-${i}-hit`);
+          if (powersUsed[i]) {
+            xImg.style.display = 'block';
+            hit.style.pointerEvents = 'none';
+          } else {
+            xImg.style.display = 'none';
+            hit.style.pointerEvents = 'auto';
+          }
+        }
+
+        // Séparation en 2 lignes de 3 cartes maximum
+        const split = Math.min(3, Math.ceil(total / 2));
+        topRow = myHand.slice(0, split);
+        bottomRow = myHand.slice(split, split + 3);
+
+        if (topIndex >= topRow.length) topIndex = 0;
+        if (bottomIndex >= bottomRow.length) bottomIndex = 0;
+
+        renderRows();
+      }
+
+      function renderRows() {
+        const topDiv = document.getElementById('card-top-text');
+        const botDiv = document.getElementById('card-bottom-text');
+
+        topDiv.textContent = topRow[topIndex] ? topRow[topIndex].question : 'Aucune carte';
+        botDiv.textContent = bottomRow[bottomIndex] ? bottomRow[bottomIndex].question : 'Aucune carte';
+      }
+
+      function updateActiveBanner() {
+        const banner = document.getElementById('mobile-active-banner');
+        if (!activeRoundPower) {
+          banner.style.display = 'none';
+          return;
+        }
+        banner.style.display = 'block';
+        if (activeRoundPower.type === 'PLUS_200') banner.textContent = 'Pouvoir actif : +200 sur votre carte';
+        if (activeRoundPower.type === 'MINUS_200') banner.textContent = 'Pouvoir actif : -200 sur votre carte';
+        if (activeRoundPower.type === 'CHANGE_CARD') banner.textContent = 'Cliquez sur "Choisir cette carte" pour la remplacer';
+        if (activeRoundPower.type === 'TWO_SUM') {
+          banner.textContent = activeRoundPower.firstCard
+            ? 'Somme (+) : Choisissez votre 2e carte'
+            : 'Somme (+) : Choisissez votre 1re carte';
+        }
+        if (activeRoundPower.type === 'TWO_DIFF') {
+          banner.textContent = activeRoundPower.firstCard
+            ? 'Différence (-) : Choisissez votre 2e carte'
+            : 'Différence (-) : Choisissez votre 1re carte';
+        }
+      }
+
+      // Navigation indépendante (max 3 cartes par ligne)
+      document.getElementById('top-prev').addEventListener('click', () => {
+        if (topRow.length <= 1) return;
+        topIndex = (topIndex - 1 + topRow.length) % topRow.length;
+        renderRows();
+      });
+      document.getElementById('top-next').addEventListener('click', () => {
+        if (topRow.length <= 1) return;
+        topIndex = (topIndex + 1) % topRow.length;
+        renderRows();
+      });
+
+      document.getElementById('bottom-prev').addEventListener('click', () => {
+        if (bottomRow.length <= 1) return;
+        bottomIndex = (bottomIndex - 1 + bottomRow.length) % bottomRow.length;
+        renderRows();
+      });
+      document.getElementById('bottom-next').addEventListener('click', () => {
+        if (bottomRow.length <= 1) return;
+        bottomIndex = (bottomIndex + 1) % bottomRow.length;
+        renderRows();
+      });
+
+      // Sélection d'une carte (haut ou bas)
+      function handleSelectCard(card) {
+        if (!card) return;
+
+        // Cas 1 : Pouvoir "Changer de carte" actif
+        if (activeRoundPower && activeRoundPower.type === 'CHANGE_CARD') {
+          if (hostConn && hostConn.open) {
+            hostConn.send({
+              type: 'USE_POWER',
+              team: myTeam,
+              powerIndex: 1,
+              replaceCardId: card.id
+            });
+          }
+          activeRoundPower = null;
+          updateActiveBanner();
+          return;
+        }
+
+        // Cas 2 : Pouvoir "Jouer 2 cartes" actif
+        if (activeRoundPower && (activeRoundPower.type === 'TWO_SUM' || activeRoundPower.type === 'TWO_DIFF')) {
+          if (!activeRoundPower.firstCard) {
+            activeRoundPower.firstCard = card;
+            updateActiveBanner();
+            return;
+          } else {
+            if (activeRoundPower.firstCard.id === card.id) return; // Empêcher de choisir 2x la même carte
+            const isDiff = activeRoundPower.type === 'TWO_DIFF';
+            const label = isDiff ? 'Pouvoir : Différence (-)' : 'Pouvoir : Somme (+)';
+            if (hostConn && hostConn.open) {
+              hostConn.send({
+                type: 'SUBMIT_CARDS',
+                team: myTeam,
+                cards: [activeRoundPower.firstCard, card],
+                modifier: isDiff ? 'DIFF' : 'SUM',
+                powerLabel: label
+              });
+            }
+            document.getElementById('chosen-card-reminder').textContent =
+              `1. ${activeRoundPower.firstCard.question} | 2. ${card.question}`;
+            document.getElementById('mobile-locked-overlay').style.display = 'flex';
+            activeRoundPower = null;
+            updateActiveBanner();
+            return;
+          }
+        }
+
+        // Cas 3 : Jeu normal (avec éventuel modificateur +200 ou -200)
+        let modifier = null;
+        let powerLabel = null;
+        if (activeRoundPower && activeRoundPower.type === 'PLUS_200') {
+          modifier = 'PLUS_200';
+          powerLabel = 'Pouvoir : + 200';
+        } else if (activeRoundPower && activeRoundPower.type === 'MINUS_200') {
+          modifier = 'MINUS_200';
+          powerLabel = 'Pouvoir : - 200';
+        }
+
+        if (hostConn && hostConn.open) {
+          hostConn.send({
+            type: 'SUBMIT_CARDS',
+            team: myTeam,
+            cards: [card],
+            modifier,
+            powerLabel
+          });
+        }
+
+        document.getElementById('chosen-card-reminder').textContent = card.question;
+        document.getElementById('mobile-locked-overlay').style.display = 'flex';
+        activeRoundPower = null;
+        updateActiveBanner();
+      }
+
+      document.getElementById('choose-top-btn').addEventListener('click', () => handleSelectCard(topRow[topIndex]));
+      document.getElementById('choose-bottom-btn').addEventListener('click', () => handleSelectCard(bottomRow[bottomIndex]));
+
+      // =========================================
+      // GESTION DES 3 POUVOIRS (EXPLICATION + DOUBLE VALIDATION)
+      // =========================================
+      const POWER_INFOS = [
+        {
+          title: "Plus / Moins 200",
+          desc: "Jouez cette carte et choisissez de quel côté vous la jouez AVANT de révéler votre carte Question. Ajoute exactement 200 ou soustrait exactement 200 à la valeur de votre carte."
+        },
+        {
+          title: "Changer de carte",
+          desc: "Jouez cette carte et remplacez une des cartes Question devant vous (au choix) par celle du dessous de la pile."
+        },
+        {
+          title: "Jouer 2 cartes",
+          desc: "Jouez DEUX cartes Question. Votre réponse correspond à la somme (+) OU à la différence (-) de vos 2 questions. Si vous êtes les plus éloignés, choisissez laquelle des 2 cartes devient la prochaine cible et reprenez 2 cartes. Sinon, vous vous débarrassez des 2 cartes !"
+        }
+      ];
+
+      function openPowerModal(idx) {
+        if (powersUsed[idx]) return;
+        pendingPowerModalIndex = idx;
+        document.getElementById('power-modal-title').textContent = POWER_INFOS[idx].title;
+        document.getElementById('power-modal-desc').textContent = POWER_INFOS[idx].desc;
+        document.getElementById('power-step-1').style.display = 'flex';
+        document.getElementById('power-step-2').style.display = 'none';
+        document.getElementById('power-modal').style.display = 'flex';
+      }
+
+      document.getElementById('mob-pwr-0-hit').addEventListener('click', () => openPowerModal(0));
+      document.getElementById('mob-pwr-1-hit').addEventListener('click', () => openPowerModal(1));
+      document.getElementById('mob-pwr-2-hit').addEventListener('click', () => openPowerModal(2));
+
+      document.getElementById('power-close-btn').addEventListener('click', () => {
+        document.getElementById('power-modal').style.display = 'none';
+      });
+      document.getElementById('power-cancel-confirm').addEventListener('click', () => {
+        document.getElementById('power-modal').style.display = 'none';
+      });
+
+      // 1er clic sur "Utiliser" -> affiche la validation définitive
+      document.getElementById('power-use-btn').addEventListener('click', () => {
+        document.getElementById('power-step-1').style.display = 'none';
+        const step2 = document.getElementById('power-step-2');
+        const extra = document.getElementById('power-extra-options');
+        extra.innerHTML = '';
+        step2.style.display = 'flex';
+
+        if (pendingPowerModalIndex === 0) {
+          // Choix +200 ou -200
+          const bPlus = document.createElement('button');
+          bPlus.className = 'btn-primary';
+          bPlus.textContent = 'Confirmer (+ 200)';
+          bPlus.onclick = () => confirmPowerActivation(0, 'PLUS_200');
+
+          const bMinus = document.createElement('button');
+          bMinus.className = 'btn-primary';
+          bMinus.textContent = 'Confirmer (- 200)';
+          bMinus.onclick = () => confirmPowerActivation(0, 'MINUS_200');
+
+          extra.appendChild(bPlus);
+          extra.appendChild(bMinus);
+        } else if (pendingPowerModalIndex === 1) {
+          // Changer de carte
+          const bConfirm = document.createElement('button');
+          bConfirm.className = 'btn-primary';
+          bConfirm.textContent = 'Confirmer l\'utilisation';
+          bConfirm.onclick = () => confirmPowerActivation(1, 'CHANGE_CARD');
+          extra.appendChild(bConfirm);
+        } else if (pendingPowerModalIndex === 2) {
+          // Jouer 2 cartes : Somme ou Différence
+          const bSum = document.createElement('button');
+          bSum.className = 'btn-primary';
+          bSum.textContent = 'Confirmer (Somme +)';
+          bSum.onclick = () => confirmPowerActivation(2, 'TWO_SUM');
+
+          const bDiff = document.createElement('button');
+          bDiff.className = 'btn-primary';
+          bDiff.textContent = 'Confirmer (Différence -)';
+          bDiff.onclick = () => confirmPowerActivation(2, 'TWO_DIFF');
+
+          extra.appendChild(bSum);
+          extra.appendChild(bDiff);
+        }
+      });
+
+      function confirmPowerActivation(idx, mode) {
+        document.getElementById('power-modal').style.display = 'none';
+        powersUsed[idx] = true;
+        activeRoundPower = { type: mode, firstCard: null };
+
+        // Pour idx 0 et 2, on verrouille immédiatement le pouvoir sur TV & Mobile
+        // Pour idx 1 ("Changer de carte"), l'envoi USE_POWER se fait dès qu'il clique sur la carte à remplacer
+        if (idx !== 1 && hostConn && hostConn.open) {
+          hostConn.send({
+            type: 'USE_POWER',
+            team: myTeam,
+            powerIndex: idx
+          });
+        }
+
+        refreshMobileUI();
+        updateActiveBanner();
+      }
+
+      // Menu Burger Joueur (Uniquement Règles)
+      document.getElementById('mob-burger-hit').addEventListener('click', () => {
+        document.getElementById('mob-menu-modal').style.display = 'flex';
+      });
+      document.getElementById('mob-menu-close').addEventListener('click', () => {
+        document.getElementById('mob-menu-modal').style.display = 'none';
+      });
+      document.getElementById('mob-menu-rules').addEventListener('click', () => {
+        document.getElementById('mob-menu-modal').style.display = 'none';
+        document.getElementById('rules-modal').style.display = 'flex';
+      });
+    }
+  </script>
+
+</body>
+</html>
