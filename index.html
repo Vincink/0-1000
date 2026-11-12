@@ -426,6 +426,23 @@
       cursor: pointer;
     }
 
+    /* Indicateur discret de reconnexion en cours */
+    #reconnect-pill {
+      display: none;
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #e11d48;
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 150;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    }
+
     /* Bandeau d'état actif d'un pouvoir sur mobile */
     #mobile-active-banner {
       display: none;
@@ -570,6 +587,7 @@
        VUE 2 : ÉCRAN SMARTPHONE JOUEUR (1206x2622)
        ========================================= -->
   <div id="mobile-view">
+    <div id="reconnect-pill">Reconnexion à la TV...</div>
 
     <!-- Étape 1 : Choix exclusif de l'équipe -->
     <div id="team-select-screen">
@@ -716,7 +734,7 @@
 
   <script>
     // =========================================
-    // UTILITAIRES : PIOCHE & AUDIO SUSPENSE
+    // UTILITAIRES : PIOCHE, WAKE LOCK & AUDIO
     // =========================================
     const BASE_POOL = (typeof QUESTIONS_0_A_1000 !== 'undefined' && QUESTIONS_0_A_1000.length > 0)
       ? QUESTIONS_0_A_1000
@@ -734,7 +752,18 @@
       return copy;
     }
 
-    // Son de suspense de 2 secondes via Web Audio API
+    // Empêche la mise en veille de l'écran sur smartphone (Screen Wake Lock API)
+    let wakeLockSentinel = null;
+    async function requestScreenWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+        }
+      } catch (e) {
+        // Ignoré silencieusement si non supporté ou batterie faible
+      }
+    }
+
     function playSuspenseSound(durationSec = 2.0) {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -768,7 +797,6 @@
     const tvView = document.getElementById('tv-view');
     const mobileView = document.getElementById('mobile-view');
 
-    // Modales Règles & Victoire partagées
     document.getElementById('rules-close-btn').addEventListener('click', () => {
       document.getElementById('rules-modal').style.display = 'none';
     });
@@ -802,7 +830,7 @@
 
       function initGame(resetConnections = false) {
         deck = shuffleArray(BASE_POOL);
-        targetNumber = Math.floor(Math.random() * 801) + 100; // Cible initiale entre 100 et 900
+        targetNumber = Math.floor(Math.random() * 801) + 100;
         document.getElementById('tv-target').textContent = targetNumber;
 
         ['blue', 'red'].forEach(team => {
@@ -811,7 +839,6 @@
           gameState[team].powersUsed = [false, false, false];
           gameState[team].submission = null;
 
-          // Cacher révélations et croix pouvoirs sur la TV
           document.getElementById(`tv-${team}-reveal`).style.display = 'none';
           document.getElementById(`tv-${team}-value`).style.display = 'none';
           document.getElementById(`tv-${team}-verdict`).style.display = 'none';
@@ -852,7 +879,6 @@
         });
       }
 
-      // Affichage de la question seule sur la TV dès qu'une équipe joue
       function renderTeamSubmissionOnTv(team, sub) {
         const box = document.getElementById(`tv-${team}-question-text`);
         box.innerHTML = '';
@@ -876,7 +902,6 @@
         document.getElementById(`tv-${team}-reveal`).style.display = 'block';
       }
 
-      // Calcul de la valeur effective d'une soumission
       function computeEffectiveValue(sub) {
         if (sub.cards.length === 1) {
           let val = sub.cards[0].value;
@@ -890,7 +915,6 @@
         }
       }
 
-      // Résolution complète de la manche après le suspense de 2 secondes
       function resolveRound() {
         const subB = gameState.blue.submission;
         const subR = gameState.red.submission;
@@ -923,34 +947,27 @@
           verdictB.style.display = 'block';
           verdictR.style.display = 'block';
 
-          // Retirer les cartes jouées des mains
           const playedIdsB = new Set(subB.cards.map(c => c.id));
           const playedIdsR = new Set(subR.cards.map(c => c.id));
           gameState.blue.hand = gameState.blue.hand.filter(c => !playedIdsB.has(c.id));
           gameState.red.hand = gameState.red.hand.filter(c => !playedIdsR.has(c.id));
 
-          // Le gagnant voit sa valeur devenir la nouvelle cible
           targetNumber = blueWins ? valB : valR;
           document.getElementById('tv-target').textContent = targetNumber;
 
-          // Gestion du perdant :
           const loserSub = gameState[loser].submission;
           if (loserSub.cards.length === 2) {
-            // Pouvoir "Jouer 2 cartes" perdu : le perdant choisit laquelle des 2 cartes devient la nouvelle cible
             sendToTeam(loser, {
               type: 'CHOOSE_NEXT_TARGET',
               cards: loserSub.cards
             });
-            // Le perdant reprend 2 cartes
             gameState[loser].hand.push(...drawCards(2));
           } else {
-            // Perdant classique : pioche 1 nouvelle carte
             gameState[loser].hand.push(...drawCards(1));
           }
 
           updateTvCounters();
 
-          // Vérification de victoire (0 carte restante)
           if (gameState[winner].hand.length === 0) {
             const winName = winner === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
             document.getElementById('victory-title').textContent = `Victoire de l'${winName} !`;
@@ -961,7 +978,6 @@
             return;
           }
 
-          // Préparer la manche suivante après 4,5 secondes de lecture du résultat
           setTimeout(() => {
             gameState.blue.submission = null;
             gameState.red.submission = null;
@@ -977,7 +993,6 @@
         }, 2000);
       }
 
-      // Initialisation PeerJS
       const roomId = 'zero1000-' + Math.random().toString(36).substring(2, 8);
       const peer = new Peer(roomId);
 
@@ -1004,15 +1019,18 @@
         });
 
         conn.on('data', (data) => {
+          // Prise d'équipe OU reconnexion transparente après verrouillage d'écran
           if (data.type === 'CLAIM_TEAM') {
-            if (!gameState[data.team].connected) {
+            const canJoin = !gameState[data.team].connected || data.isReconnect === true;
+            if (canJoin) {
               gameState[data.team].connected = true;
               conn.team = data.team;
               conn.send({
                 type: 'CLAIM_ACCEPTED',
                 team: data.team,
                 hand: gameState[data.team].hand,
-                powersUsed: gameState[data.team].powersUsed
+                powersUsed: gameState[data.team].powersUsed,
+                pendingSubmission: gameState[data.team].submission
               });
               broadcastSync();
 
@@ -1024,12 +1042,15 @@
             }
           }
 
+          if (data.type === 'PING') {
+            conn.send({ type: 'PONG' });
+          }
+
           if (data.type === 'USE_POWER') {
             const { team, powerIndex } = data;
             gameState[team].powersUsed[powerIndex] = true;
             document.getElementById(`tv-${team}-pwr-${powerIndex}-x`).style.display = 'block';
 
-            // Pouvoir 1 : Changer de carte (remplace la carte choisie par une nouvelle de la pioche)
             if (powerIndex === 1 && typeof data.replaceCardId === 'number') {
               const idx = gameState[team].hand.findIndex(c => c.id === data.replaceCardId);
               if (idx !== -1) {
@@ -1056,41 +1077,32 @@
         });
       });
 
-      // Démarrer la première partie
       initGame(true);
 
-      // Boutons QR & Menu Burger TV
       document.getElementById('qr-close-btn').addEventListener('click', () => {
         document.getElementById('qr-overlay').style.display = 'none';
       });
-
       document.getElementById('tv-burger-btn').addEventListener('click', () => {
         document.getElementById('tv-menu-modal').style.display = 'flex';
       });
-
       document.getElementById('tv-menu-close').addEventListener('click', () => {
         document.getElementById('tv-menu-modal').style.display = 'none';
       });
-
       document.getElementById('tv-menu-rules').addEventListener('click', () => {
         document.getElementById('tv-menu-modal').style.display = 'none';
         document.getElementById('rules-modal').style.display = 'flex';
       });
-
       document.getElementById('tv-menu-qr').addEventListener('click', () => {
         document.getElementById('tv-menu-modal').style.display = 'none';
         document.getElementById('qr-overlay').style.display = 'flex';
       });
-
       document.getElementById('tv-menu-restart').addEventListener('click', () => {
         document.getElementById('tv-menu-modal').style.display = 'none';
         document.getElementById('tv-restart-confirm-modal').style.display = 'flex';
       });
-
       document.getElementById('tv-restart-no').addEventListener('click', () => {
         document.getElementById('tv-restart-confirm-modal').style.display = 'none';
       });
-
       document.getElementById('tv-restart-yes').addEventListener('click', () => {
         document.getElementById('tv-restart-confirm-modal').style.display = 'none';
         document.getElementById('victory-modal').style.display = 'none';
@@ -1102,7 +1114,7 @@
     }
 
     // =========================================
-    // LOGIQUE SMARTPHONE (JOUEUR)
+    // LOGIQUE SMARTPHONE (JOUEUR + ANTI-VEILLE)
     // =========================================
     if (isMobileMode) {
       tvView.style.display = 'none';
@@ -1111,96 +1123,197 @@
       const btnBlue = document.getElementById('select-blue');
       const btnRed = document.getElementById('select-red');
       const connMsg = document.getElementById('connection-msg');
+      const reconnectPill = document.getElementById('reconnect-pill');
 
-      let myTeam = null;
+      const storageKey = hostPeerIdFromUrl ? `zero1000_team_${hostPeerIdFromUrl}` : null;
+      let myTeam = storageKey ? sessionStorage.getItem(storageKey) : null;
       let myHand = [];
       let powersUsed = [false, false, false];
       let topRow = [];
       let bottomRow = [];
       let topIndex = 0;
       let bottomIndex = 0;
-      let hostConn = null;
 
-      // État actif d'un pouvoir pendant le tour
-      let activeRoundPower = null; // { type: 'PLUS_200'|'MINUS_200'|'CHANGE_CARD'|'TWO_SUM'|'TWO_DIFF', firstCard: null }
+      let peer = null;
+      let hostConn = null;
+      let isReconnecting = false;
+
+      let activeRoundPower = null;
       let pendingPowerModalIndex = null;
 
-      if (hostPeerIdFromUrl) {
-        const peer = new Peer();
-        peer.on('open', () => {
-          hostConn = peer.connect(hostPeerIdFromUrl);
+      // Blocage du retour arrière navigateur
+      history.pushState(null, '', location.href);
+      window.addEventListener('popstate', () => {
+        history.pushState(null, '', location.href);
+      });
 
-          hostConn.on('open', () => {
-            connMsg.textContent = 'Connecté à la TV ! Choisissez votre équipe.';
-          });
+      function setupConnectionHandlers(conn) {
+        conn.on('open', () => {
+          isReconnecting = false;
+          reconnectPill.style.display = 'none';
+          connMsg.textContent = 'Connecté à la TV ! Choisissez votre équipe.';
 
-          hostConn.on('data', (data) => {
-            if (data.type === 'SYNC_STATE') {
-              btnBlue.disabled = data.takenTeams.blue;
-              btnBlue.textContent = data.takenTeams.blue ? 'Équipe Bleue (Déjà prise)' : 'Équipe Bleue';
-              btnRed.disabled = data.takenTeams.red;
-              btnRed.textContent = data.takenTeams.red ? 'Équipe Rouge (Déjà prise)' : 'Équipe Rouge';
+          // Si le téléphone avait déjà une équipe avant le verrouillage, il la récupère aussitôt
+          if (myTeam) {
+            conn.send({ type: 'CLAIM_TEAM', team: myTeam, isReconnect: true });
+          }
+        });
 
-              if (myTeam && data.hands[myTeam]) {
-                myHand = data.hands[myTeam];
-                powersUsed = data.powersUsed[myTeam];
-                refreshMobileUI();
-              }
-            }
+        conn.on('data', (data) => {
+          if (data.type === 'SYNC_STATE') {
+            btnBlue.disabled = data.takenTeams.blue && myTeam !== 'blue';
+            btnBlue.textContent = (data.takenTeams.blue && myTeam !== 'blue') ? 'Équipe Bleue (Déjà prise)' : 'Équipe Bleue';
+            btnRed.disabled = data.takenTeams.red && myTeam !== 'red';
+            btnRed.textContent = (data.takenTeams.red && myTeam !== 'red') ? 'Équipe Rouge (Déjà prise)' : 'Équipe Rouge';
 
-            if (data.type === 'CLAIM_ACCEPTED') {
-              myTeam = data.team;
-              myHand = data.hand;
-              powersUsed = data.powersUsed;
-              document.getElementById('player-bg-img').setAttribute(
-                'href',
-                myTeam === 'blue' ? 'assets/player/Fond_player_bleu.jpg' : 'assets/player/fond_player_rouge.jpg'
-              );
-              document.getElementById('team-select-screen').style.display = 'none';
-              document.getElementById('player-board-screen').style.display = 'flex';
+            if (myTeam && data.hands[myTeam]) {
+              myHand = data.hands[myTeam];
+              powersUsed = data.powersUsed[myTeam];
               refreshMobileUI();
             }
+          }
 
-            if (data.type === 'NEW_ROUND') {
-              activeRoundPower = null;
-              updateActiveBanner();
+          if (data.type === 'CLAIM_ACCEPTED') {
+            myTeam = data.team;
+            if (storageKey) sessionStorage.setItem(storageKey, myTeam);
+            requestScreenWakeLock();
+
+            myHand = data.hand;
+            powersUsed = data.powersUsed;
+            document.getElementById('player-bg-img').setAttribute(
+              'href',
+              myTeam === 'blue' ? 'assets/player/Fond_player_bleu.jpg' : 'assets/player/fond_player_rouge.jpg'
+            );
+            document.getElementById('team-select-screen').style.display = 'none';
+            document.getElementById('player-board-screen').style.display = 'flex';
+            refreshMobileUI();
+
+            // Restaure l'état verrouillé si la carte de cette manche avait déjà été jouée
+            if (data.pendingSubmission && data.pendingSubmission.cards) {
+              const summary = data.pendingSubmission.cards.map(c => c.question).join(' | ');
+              document.getElementById('chosen-card-reminder').textContent = summary;
+              document.getElementById('mobile-locked-overlay').style.display = 'flex';
+            } else {
               document.getElementById('mobile-locked-overlay').style.display = 'none';
             }
+          }
 
-            if (data.type === 'CHOOSE_NEXT_TARGET') {
-              const [c1, c2] = data.cards;
-              const b1 = document.getElementById('pick-target-card-1');
-              const b2 = document.getElementById('pick-target-card-2');
-              b1.textContent = `${c1.question} (${c1.value})`;
-              b2.textContent = `${c2.question} (${c2.value})`;
+          if (data.type === 'NEW_ROUND') {
+            activeRoundPower = null;
+            updateActiveBanner();
+            document.getElementById('mobile-locked-overlay').style.display = 'none';
+          }
 
-              b1.onclick = () => {
-                if (hostConn && hostConn.open) hostConn.send({ type: 'SET_NEXT_TARGET', value: c1.value });
-                document.getElementById('two-cards-loser-modal').style.display = 'none';
-              };
-              b2.onclick = () => {
-                if (hostConn && hostConn.open) hostConn.send({ type: 'SET_NEXT_TARGET', value: c2.value });
-                document.getElementById('two-cards-loser-modal').style.display = 'none';
-              };
-              document.getElementById('two-cards-loser-modal').style.display = 'flex';
-            }
+          if (data.type === 'CHOOSE_NEXT_TARGET') {
+            const [c1, c2] = data.cards;
+            const b1 = document.getElementById('pick-target-card-1');
+            const b2 = document.getElementById('pick-target-card-2');
+            b1.textContent = `${c1.question} (${c1.value})`;
+            b2.textContent = `${c2.question} (${c2.value})`;
 
-            if (data.type === 'GAME_OVER') {
-              document.getElementById('victory-title').textContent = `Victoire de l'${data.winnerName} !`;
-              document.getElementById('victory-modal').style.display = 'flex';
-            }
-          });
+            b1.onclick = () => {
+              if (hostConn && hostConn.open) hostConn.send({ type: 'SET_NEXT_TARGET', value: c1.value });
+              document.getElementById('two-cards-loser-modal').style.display = 'none';
+            };
+            b2.onclick = () => {
+              if (hostConn && hostConn.open) hostConn.send({ type: 'SET_NEXT_TARGET', value: c2.value });
+              document.getElementById('two-cards-loser-modal').style.display = 'none';
+            };
+            document.getElementById('two-cards-loser-modal').style.display = 'flex';
+          }
+
+          if (data.type === 'GAME_OVER') {
+            document.getElementById('victory-title').textContent = `Victoire de l'${data.winnerName} !`;
+            document.getElementById('victory-modal').style.display = 'flex';
+          }
+        });
+
+        conn.on('close', () => {
+          if (myTeam) reconnectPill.style.display = 'block';
+          ensureConnectedToHost();
+        });
+
+        conn.on('error', () => {
+          if (myTeam) reconnectPill.style.display = 'block';
         });
       }
 
+      function ensureConnectedToHost() {
+        if (!hostPeerIdFromUrl || isReconnecting) return;
+        if (hostConn && hostConn.open) return;
+
+        isReconnecting = true;
+        if (myTeam) reconnectPill.style.display = 'block';
+
+        if (!peer || peer.destroyed) {
+          peer = new Peer();
+          peer.on('open', () => {
+            hostConn = peer.connect(hostPeerIdFromUrl, { reliable: true });
+            setupConnectionHandlers(hostConn);
+          });
+          peer.on('error', () => {
+            isReconnecting = false;
+          });
+        } else if (peer.disconnected) {
+          peer.reconnect();
+          setTimeout(() => {
+            hostConn = peer.connect(hostPeerIdFromUrl, { reliable: true });
+            setupConnectionHandlers(hostConn);
+          }, 500);
+        } else {
+          hostConn = peer.connect(hostPeerIdFromUrl, { reliable: true });
+          setupConnectionHandlers(hostConn);
+        }
+
+        setTimeout(() => {
+          isReconnecting = false;
+        }, 2500);
+      }
+
+      // Initialisation de la connexion
+      ensureConnectedToHost();
+
+      // Reconnexion automatique immédiate au déverrouillage de l'écran / retour sur l'onglet
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          if (myTeam) requestScreenWakeLock();
+          ensureConnectedToHost();
+        }
+      });
+
+      window.addEventListener('pageshow', () => {
+        if (myTeam) requestScreenWakeLock();
+        ensureConnectedToHost();
+      });
+
+      window.addEventListener('online', () => {
+        ensureConnectedToHost();
+      });
+
+      // Heartbeat toutes les 5 secondes pour détecter une coupure silencieuse iOS/Android
+      setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          if (!hostConn || !hostConn.open) {
+            ensureConnectedToHost();
+          } else {
+            try {
+              hostConn.send({ type: 'PING' });
+            } catch (e) {
+              ensureConnectedToHost();
+            }
+          }
+        }
+      }, 5000);
+
       btnBlue.addEventListener('click', () => {
+        requestScreenWakeLock();
         if (hostConn && hostConn.open) hostConn.send({ type: 'CLAIM_TEAM', team: 'blue' });
       });
       btnRed.addEventListener('click', () => {
+        requestScreenWakeLock();
         if (hostConn && hostConn.open) hostConn.send({ type: 'CLAIM_TEAM', team: 'red' });
       });
 
-      // Répartition stricte : maximum 3 cartes par ligne
       function refreshMobileUI() {
         const total = myHand.length;
         document.getElementById('mob-cards-count').textContent = `${total} ${total > 1 ? 'cartes' : 'carte'}`;
@@ -1208,7 +1321,6 @@
         const remainingPowers = powersUsed.filter(u => !u).length;
         document.getElementById('mob-powers-count').textContent = `${remainingPowers} ⚡`;
 
-        // Croix rouges Faux.svg et verrouillage sur les pouvoirs utilisés
         for (let i = 0; i < 3; i++) {
           const xImg = document.getElementById(`mob-pwr-${i}-x`);
           const hit = document.getElementById(`mob-pwr-${i}-hit`);
@@ -1221,7 +1333,6 @@
           }
         }
 
-        // Séparation en 2 lignes de 3 cartes maximum
         const split = Math.min(3, Math.ceil(total / 2));
         topRow = myHand.slice(0, split);
         bottomRow = myHand.slice(split, split + 3);
@@ -1262,7 +1373,6 @@
         }
       }
 
-      // Navigation indépendante (max 3 cartes par ligne)
       document.getElementById('top-prev').addEventListener('click', () => {
         if (topRow.length <= 1) return;
         topIndex = (topIndex - 1 + topRow.length) % topRow.length;
@@ -1285,11 +1395,9 @@
         renderRows();
       });
 
-      // Sélection d'une carte (haut ou bas)
       function handleSelectCard(card) {
         if (!card) return;
 
-        // Cas 1 : Pouvoir "Changer de carte" actif
         if (activeRoundPower && activeRoundPower.type === 'CHANGE_CARD') {
           if (hostConn && hostConn.open) {
             hostConn.send({
@@ -1304,14 +1412,13 @@
           return;
         }
 
-        // Cas 2 : Pouvoir "Jouer 2 cartes" actif
         if (activeRoundPower && (activeRoundPower.type === 'TWO_SUM' || activeRoundPower.type === 'TWO_DIFF')) {
           if (!activeRoundPower.firstCard) {
             activeRoundPower.firstCard = card;
             updateActiveBanner();
             return;
           } else {
-            if (activeRoundPower.firstCard.id === card.id) return; // Empêcher de choisir 2x la même carte
+            if (activeRoundPower.firstCard.id === card.id) return;
             const isDiff = activeRoundPower.type === 'TWO_DIFF';
             const label = isDiff ? 'Pouvoir : Différence (-)' : 'Pouvoir : Somme (+)';
             if (hostConn && hostConn.open) {
@@ -1332,7 +1439,6 @@
           }
         }
 
-        // Cas 3 : Jeu normal (avec éventuel modificateur +200 ou -200)
         let modifier = null;
         let powerLabel = null;
         if (activeRoundPower && activeRoundPower.type === 'PLUS_200') {
@@ -1362,9 +1468,6 @@
       document.getElementById('choose-top-btn').addEventListener('click', () => handleSelectCard(topRow[topIndex]));
       document.getElementById('choose-bottom-btn').addEventListener('click', () => handleSelectCard(bottomRow[bottomIndex]));
 
-      // =========================================
-      // GESTION DES 3 POUVOIRS (EXPLICATION + DOUBLE VALIDATION)
-      // =========================================
       const POWER_INFOS = [
         {
           title: "Plus / Moins 200",
@@ -1401,7 +1504,6 @@
         document.getElementById('power-modal').style.display = 'none';
       });
 
-      // 1er clic sur "Utiliser" -> affiche la validation définitive
       document.getElementById('power-use-btn').addEventListener('click', () => {
         document.getElementById('power-step-1').style.display = 'none';
         const step2 = document.getElementById('power-step-2');
@@ -1410,7 +1512,6 @@
         step2.style.display = 'flex';
 
         if (pendingPowerModalIndex === 0) {
-          // Choix +200 ou -200
           const bPlus = document.createElement('button');
           bPlus.className = 'btn-primary';
           bPlus.textContent = 'Confirmer (+ 200)';
@@ -1424,14 +1525,12 @@
           extra.appendChild(bPlus);
           extra.appendChild(bMinus);
         } else if (pendingPowerModalIndex === 1) {
-          // Changer de carte
           const bConfirm = document.createElement('button');
           bConfirm.className = 'btn-primary';
           bConfirm.textContent = 'Confirmer l\'utilisation';
           bConfirm.onclick = () => confirmPowerActivation(1, 'CHANGE_CARD');
           extra.appendChild(bConfirm);
         } else if (pendingPowerModalIndex === 2) {
-          // Jouer 2 cartes : Somme ou Différence
           const bSum = document.createElement('button');
           bSum.className = 'btn-primary';
           bSum.textContent = 'Confirmer (Somme +)';
@@ -1452,8 +1551,6 @@
         powersUsed[idx] = true;
         activeRoundPower = { type: mode, firstCard: null };
 
-        // Pour idx 0 et 2, on verrouille immédiatement le pouvoir sur TV & Mobile
-        // Pour idx 1 ("Changer de carte"), l'envoi USE_POWER se fait dès qu'il clique sur la carte à remplacer
         if (idx !== 1 && hostConn && hostConn.open) {
           hostConn.send({
             type: 'USE_POWER',
@@ -1466,7 +1563,6 @@
         updateActiveBanner();
       }
 
-      // Menu Burger Joueur (Uniquement Règles)
       document.getElementById('mob-burger-hit').addEventListener('click', () => {
         document.getElementById('mob-menu-modal').style.display = 'flex';
       });
