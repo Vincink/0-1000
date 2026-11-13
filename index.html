@@ -55,12 +55,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
 
     #tv-view svg {
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      pointer-events: none;
+      z-index: 90;
     }
 
     .team-title {
@@ -92,7 +102,36 @@
       dominant-baseline: central;
     }
 
-    /* Texte seul de question sur la TV (agrandi + sans débordement) */
+    /* Animation de retournement 3D des cartes de révélation sur la TV */
+    #tv-blue-reveal {
+      transform-box: fill-box;
+      transform-origin: center center;
+    }
+
+    #tv-red-reveal {
+      transform-box: fill-box;
+      transform-origin: center center;
+    }
+
+    .card-flip-out {
+      animation: cardFlipOut 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+
+    .card-flip-in {
+      animation: cardFlipIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes cardFlipOut {
+      0%   { transform: scaleX(1) scaleY(1); }
+      100% { transform: scaleX(0.02) scaleY(1.04); }
+    }
+
+    @keyframes cardFlipIn {
+      0%   { transform: scaleX(0.02) scaleY(1.04); }
+      100% { transform: scaleX(1) scaleY(1); }
+    }
+
+    /* Texte seul de question sur la TV (marge stricte 55px de chaque côté) */
     .tv-question-box {
       width: 100%;
       height: 100%;
@@ -127,11 +166,36 @@
 
     .tv-revealed-value {
       font-family: 'BalloonDreams', sans-serif;
-      font-size: 165px;
+      font-size: 210px;
       fill: #fbbf24;
       stroke: #0f172a;
-      stroke-width: 12px;
+      stroke-width: 14px;
       paint-order: stroke fill;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* Case de victoire sous la carte cible sans foncer l'écran */
+    .tv-victory-box {
+      fill: #0f172a;
+      stroke: #fbbf24;
+      stroke-width: 12px;
+    }
+
+    .tv-victory-title {
+      font-family: 'MontserratCustom', sans-serif;
+      font-weight: 700;
+      font-size: 66px;
+      fill: #fbbf24;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    .tv-victory-sub {
+      font-family: 'MontserratCustom', sans-serif;
+      font-weight: 700;
+      font-size: 40px;
+      fill: #f8fafc;
       text-anchor: middle;
       dominant-baseline: central;
     }
@@ -370,12 +434,10 @@
       dominant-baseline: central;
     }
 
-    /* Groupe animé du carrousel de cartes */
     .carousel-card-group {
       will-change: transform;
     }
 
-    /* Texte à l'intérieur de la carte agrandie (strictement dans la zone blanche) */
     .mobile-card-text {
       width: 100%;
       height: 100%;
@@ -476,6 +538,8 @@
        VUE 1 : ÉCRAN TV HÔTE (3840x2160)
        ========================================= -->
   <div id="tv-view">
+    <canvas id="confetti-canvas"></canvas>
+
     <svg viewBox="0 0 3840 2160" preserveAspectRatio="xMidYMid meet">
       <image href="assets/Fond.jpg" x="0" y="0" width="3840" height="2160" />
 
@@ -494,6 +558,13 @@
       <!-- Nombre Cible Central (toujours 500 au début) -->
       <text id="tv-target" x="1920" y="1080" class="target-number">500</text>
 
+      <!-- CASE DE VICTOIRE SOUS LA CARTE CIBLE (SANS FONCER L'ÉCRAN) -->
+      <g id="tv-victory-banner" style="display: none;">
+        <rect x="1310" y="1590" width="1220" height="250" rx="36" class="tv-victory-box" />
+        <text id="tv-victory-banner-title" x="1920" y="1680" class="tv-victory-title">Victoire de l'Équipe Bleue !</text>
+        <text x="1920" y="1775" class="tv-victory-sub">Toutes les cartes ont été défaussées !</text>
+      </g>
+
       <!-- Équipe Rouge -->
       <text x="3175" y="382" class="team-title">Équipe Rouge</text>
       <text id="tv-red-count" x="3175" y="685" class="cards-count">6 cartes</text>
@@ -505,24 +576,24 @@
 
       <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Marge 55px gauche/droite : 201.26 -> 1096.08) -->
       <g id="tv-blue-reveal" style="display: none;">
-        <foreignObject x="201.26" y="1435" width="894.82" height="345">
+        <foreignObject id="tv-blue-question-fo" x="201.26" y="1435" width="894.82" height="495">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-blue-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-blue-value" x="648.67" y="1875" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-blue-verdict" href="" x="508.67" y="1551" width="280" height="280" style="display:none;" />
+        <text id="tv-blue-value" x="648.67" y="1620" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-blue-verdict" href="" x="538.67" y="1745" width="220" height="220" style="display:none;" />
       </g>
 
       <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Marge 55px gauche/droite : 2757.30 -> 3652.12) -->
       <g id="tv-red-reveal" style="display: none;">
-        <foreignObject x="2757.30" y="1435" width="894.82" height="345">
+        <foreignObject id="tv-red-question-fo" x="2757.30" y="1435" width="894.82" height="495">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-red-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-red-value" x="3204.71" y="1875" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-red-verdict" href="" x="3064.71" y="1551" width="280" height="280" style="display:none;" />
+        <text id="tv-red-value" x="3204.71" y="1620" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-red-verdict" href="" x="3094.71" y="1745" width="220" height="220" style="display:none;" />
       </g>
     </svg>
 
-    <!-- Modale QR Code TV -->
+    <!-- Modale QR Code TV (se ferme automatiquement dès que les 2 équipes sont connectées) -->
     <div id="qr-overlay" class="modal-overlay" style="display: flex;">
       <div class="modal-card">
         <h2>Rejoindre la partie</h2>
@@ -533,15 +604,15 @@
           <span id="badge-blue" class="status-badge">Équipe Bleue : En attente</span>
           <span id="badge-red" class="status-badge">Équipe Rouge : En attente</span>
         </div>
-        <button id="qr-close-btn" class="btn-primary">LANCER / CONTINUER LA PARTIE</button>
+        <p style="font-size:15px; color:#94a3b8;">La partie démarrera automatiquement dès que les deux équipes seront connectées.</p>
+        <button id="qr-close-btn" class="btn-secondary">Fermer</button>
       </div>
     </div>
 
-    <!-- Menu Burger TV -->
+    <!-- Menu Burger TV (sans option musique/son) -->
     <div id="tv-menu-modal" class="modal-overlay">
       <div class="modal-card">
         <h2>Menu</h2>
-        <button id="tv-menu-music" class="menu-stack-btn">Musique : Activée</button>
         <button id="tv-menu-rules" class="menu-stack-btn">Règles</button>
         <button id="tv-menu-qr" class="menu-stack-btn">Afficher le QR Code</button>
         <button id="tv-menu-restart" class="menu-stack-btn" style="border-color:#e11d48; color:#fda4af;">Redémarrer la partie</button>
@@ -580,7 +651,6 @@
     <div id="player-board-screen">
       <svg viewBox="0 0 1206 2622" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <!-- Masque de découpe pour que le carrousel sorte proprement sur les côtés -->
           <clipPath id="carousel-clip">
             <rect x="92" y="520" width="1022" height="1420" />
           </clipPath>
@@ -599,9 +669,7 @@
 
         <!-- Zone clippée contenant les 2 carrousels animés -->
         <g clip-path="url(#carousel-clip)">
-          <!-- =====================================
-               CARTE QUESTION SUPÉRIEURE AGRANDIE (990x585)
-               ===================================== -->
+          <!-- CARTE QUESTION SUPÉRIEURE AGRANDIE (990x585) -->
           <g id="top-card-group" class="carousel-card-group">
             <image href="assets/cartesquestion.svg" x="108" y="540" width="990" height="585" preserveAspectRatio="none" />
             <foreignObject x="108" y="540" width="990" height="585">
@@ -609,9 +677,7 @@
             </foreignObject>
           </g>
 
-          <!-- =====================================
-               CARTE QUESTION INFÉRIEURE AGRANDIE (990x585)
-               ===================================== -->
+          <!-- CARTE QUESTION INFÉRIEURE AGRANDIE (990x585) -->
           <g id="bottom-card-group" class="carousel-card-group">
             <image href="assets/cartesquestion.svg" x="108" y="1320" width="990" height="585" preserveAspectRatio="none" />
             <foreignObject x="108" y="1320" width="990" height="585">
@@ -620,7 +686,7 @@
           </g>
         </g>
 
-        <!-- Flèches indépendantes ligne du haut (avec zone tactile élargie) -->
+        <!-- Flèches indépendantes ligne du haut -->
         <g id="top-prev" class="nav-arrow">
           <rect x="0" y="730" width="105" height="210" fill="transparent" />
           <polyline points="72,775 24,832 72,890" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
@@ -633,7 +699,7 @@
         <!-- Bouton "Choisir cette carte" (Haut) -->
         <rect id="choose-top-btn" class="hit-area" x="285" y="1145" width="636" height="115" rx="57" fill="transparent" />
 
-        <!-- Flèches indépendantes ligne du bas (corrigée : 1670) -->
+        <!-- Flèches indépendantes ligne du bas -->
         <g id="bottom-prev" class="nav-arrow">
           <rect x="0" y="1510" width="105" height="210" fill="transparent" />
           <polyline points="72,1555 24,1612 72,1670" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
@@ -646,18 +712,13 @@
         <!-- Bouton "Choisir cette carte" (Bas) -->
         <rect id="choose-bottom-btn" class="hit-area" x="285" y="1925" width="636" height="115" rx="57" fill="transparent" />
 
-        <!-- =====================================
-             3 CARTES POUVOIR + CROIX ROUGE Faux.svg
-             ===================================== -->
-        <!-- Pouvoir 0 : Plus / Moins 200 -->
+        <!-- 3 CARTES POUVOIR + CROIX ROUGE Faux.svg -->
         <image id="mob-pwr-0-x" href="assets/Faux.svg" x="275" y="2160" width="190" height="310" style="display:none;" />
         <rect id="mob-pwr-0-hit" class="hit-area" x="265" y="2135" width="210" height="360" rx="24" fill="transparent" />
 
-        <!-- Pouvoir 1 : Changer de carte -->
         <image id="mob-pwr-1-x" href="assets/Faux.svg" x="508" y="2160" width="190" height="310" style="display:none;" />
         <rect id="mob-pwr-1-hit" class="hit-area" x="498" y="2135" width="210" height="360" rx="24" fill="transparent" />
 
-        <!-- Pouvoir 2 : Jouer 2 cartes -->
         <image id="mob-pwr-2-x" href="assets/Faux.svg" x="741" y="2160" width="190" height="310" style="display:none;" />
         <rect id="mob-pwr-2-hit" class="hit-area" x="731" y="2135" width="210" height="360" rx="24" fill="transparent" />
       </svg>
@@ -671,12 +732,37 @@
       </div>
     </div>
 
-    <!-- Menu Burger Joueur (Uniquement Règles) -->
+    <!-- Menu Burger Joueur (Règles, Afficher le QR Code, Redémarrer la partie) -->
     <div id="mob-menu-modal" class="modal-overlay">
       <div class="modal-card">
         <h2>Menu</h2>
         <button id="mob-menu-rules" class="menu-stack-btn">Règles</button>
+        <button id="mob-menu-qr" class="menu-stack-btn">Afficher le QR Code</button>
+        <button id="mob-menu-restart" class="menu-stack-btn" style="border-color:#e11d48; color:#fda4af;">Redémarrer la partie</button>
         <button id="mob-menu-close" class="btn-secondary">Fermer</button>
+      </div>
+    </div>
+
+    <!-- Modale QR Code côté Joueur -->
+    <div id="mob-qr-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2>Rejoindre la partie</h2>
+        <div class="qr-box">
+          <div id="mob-qrcode"></div>
+        </div>
+        <button id="mob-qr-close" class="btn-primary">Fermer</button>
+      </div>
+    </div>
+
+    <!-- Confirmation Redémarrage Joueur -->
+    <div id="mob-restart-confirm-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2>Redémarrer la partie ?</h2>
+        <p>Les scores, les 6 cartes et les 3 pouvoirs des deux équipes seront réinitialisés.</p>
+        <div class="modal-btn-row">
+          <button id="mob-restart-yes" class="btn-danger">Oui, redémarrer</button>
+          <button id="mob-restart-no" class="btn-secondary">Annuler</button>
+        </div>
       </div>
     </div>
 
@@ -709,10 +795,18 @@
       </div>
     </div>
 
+    <!-- Modale Victoire Smartphone -->
+    <div id="mob-victory-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2 id="mob-victory-title">Victoire !</h2>
+        <p>Félicitations, toutes les cartes ont été défaussées !</p>
+        <button id="mob-victory-close-btn" class="btn-primary">Fermer</button>
+      </div>
+    </div>
   </div>
 
   <!-- =========================================
-       MODALE PARTAGÉE : RÈGLES DU JEU & VICTOIRE
+       MODALE PARTAGÉE : RÈGLES DU JEU
        ========================================= -->
   <div id="rules-modal" class="modal-overlay">
     <div class="modal-card">
@@ -720,20 +814,12 @@
       <div class="rules-list">
         <p><strong>But du jeu :</strong> Soyez la première équipe à vous débarrasser de toutes vos cartes Question (arriver à <strong>0 carte</strong>).</p>
         <p><strong>Déroulement d'une manche :</strong> Chaque équipe possède 6 cartes Question au départ (réponses entre 0 et 1000). Choisissez secrètement la carte dont la réponse vous semble la plus proche du <strong>nombre cible</strong> (qui démarre toujours à <strong>500</strong>).</p>
-        <p><strong>Révélation :</strong> Une fois les 2 équipes prêtes, les valeurs s'affichent après un suspense de 2 secondes. L'équipe la plus proche remporte la manche, défausse sa carte, et sa valeur devient la <strong>nouvelle cible</strong>. L'équipe la plus éloignée défausse sa carte et en pioche une nouvelle.</p>
+        <p><strong>Révélation :</strong> Une fois les 2 équipes prêtes, les cartes se retournent pour révéler leurs valeurs. L'équipe la plus proche remporte la manche, défausse sa carte, et sa valeur devient la <strong>nouvelle cible</strong>. L'équipe la plus éloignée défausse sa carte et en pioche une nouvelle.</p>
         <p><strong>Pouvoir Plus / Moins 200 :</strong> Ajoutez ou soustrayez 200 à la valeur de votre carte avant la révélation.</p>
         <p><strong>Pouvoir Changer de carte :</strong> Remplacez l'une de vos cartes Question par une nouvelle carte de la pioche.</p>
         <p><strong>Pouvoir Jouer 2 cartes :</strong> Jouez 2 cartes et choisissez la somme (+) ou la différence (-). Si vous êtes les plus proches, vous défaussez les 2 cartes ! Si vous êtes les plus éloignés, vous choisissez laquelle de vos 2 cartes devient la prochaine cible et vous reprenez 2 cartes.</p>
       </div>
       <button id="rules-close-btn" class="btn-primary">Fermer</button>
-    </div>
-  </div>
-
-  <div id="victory-modal" class="modal-overlay">
-    <div class="modal-card">
-      <h2 id="victory-title">Victoire !</h2>
-      <p id="victory-subtitle">Félicitations, vous avez défaussé toutes vos cartes !</p>
-      <button id="victory-close-btn" class="btn-primary">Fermer</button>
     </div>
   </div>
 
@@ -757,7 +843,6 @@
       return copy;
     }
 
-    // Ajuste automatiquement la taille de police pour qu'elle soit grande mais ne déborde jamais
     function fitTextInBox(el, maxFontSize, minFontSize) {
       if (!el) return;
       let size = maxFontSize;
@@ -778,21 +863,9 @@
     }
 
     // =========================================
-    // MOTEUR AUDIO WEB AUDIO API (CÔTÉ TV)
+    // MOTEUR AUDIO WEB AUDIO API (BRUITAGES UNIQUEMENT)
     // =========================================
     let audioCtx = null;
-    let musicEnabled = true;
-    let isBgPlaying = false;
-    let bgInterval = null;
-    let bgMasterGain = null;
-    let bgStepIndex = 0;
-
-    const BG_CHORDS = [
-      [261.63, 329.63, 392.00], // Do majeur
-      [220.00, 261.63, 329.63], // La mineur
-      [174.61, 220.00, 261.63], // Fa majeur
-      [196.00, 246.94, 293.66]  // Sol majeur
-    ];
 
     function getAudioContext() {
       try {
@@ -810,85 +883,8 @@
       }
     }
 
-    function playBgStep() {
-      if (!musicEnabled || !isBgPlaying) return;
-      const ctx = getAudioContext();
-      if (!ctx || !bgMasterGain) return;
-
-      const now = ctx.currentTime;
-      const chord = BG_CHORDS[Math.floor(bgStepIndex / 4) % BG_CHORDS.length];
-      const noteFreq = chord[bgStepIndex % chord.length] * (bgStepIndex % 2 === 0 ? 1 : 2);
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(noteFreq, now);
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(650, now);
-
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.08, now + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(bgMasterGain);
-
-      osc.start(now);
-      osc.stop(now + 0.48);
-
-      if (bgStepIndex % 4 === 0) {
-        chord.forEach(freq => {
-          const padOsc = ctx.createOscillator();
-          const padGain = ctx.createGain();
-          padOsc.type = 'sine';
-          padOsc.frequency.setValueAtTime(freq * 0.5, now);
-
-          padGain.gain.setValueAtTime(0.001, now);
-          padGain.gain.linearRampToValueAtTime(0.035, now + 0.3);
-          padGain.gain.exponentialRampToValueAtTime(0.001, now + 1.9);
-
-          padOsc.connect(padGain);
-          padGain.connect(bgMasterGain);
-          padOsc.start(now);
-          padOsc.stop(now + 1.95);
-        });
-      }
-
-      bgStepIndex++;
-    }
-
-    function startBgMusic() {
-      if (!musicEnabled || isBgPlaying) return;
-      const ctx = getAudioContext();
-      if (!ctx) return;
-
-      bgMasterGain = ctx.createGain();
-      bgMasterGain.gain.setValueAtTime(0.7, ctx.currentTime);
-      bgMasterGain.connect(ctx.destination);
-
-      isBgPlaying = true;
-      bgStepIndex = 0;
-      playBgStep();
-      bgInterval = setInterval(playBgStep, 500);
-    }
-
-    function stopBgMusic() {
-      isBgPlaying = false;
-      if (bgInterval) {
-        clearInterval(bgInterval);
-        bgInterval = null;
-      }
-      if (bgMasterGain && audioCtx) {
-        bgMasterGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.1);
-      }
-    }
-
+    // Bruitage court de validation d'une équipe
     function playValidationSound() {
-      if (!musicEnabled) return;
       const ctx = getAudioContext();
       if (!ctx) return;
       const now = ctx.currentTime;
@@ -899,68 +895,55 @@
         osc.frequency.setValueAtTime(freq, now + i * 0.11);
 
         gain.gain.setValueAtTime(0.001, now + i * 0.11);
-        gain.gain.linearRampToValueAtTime(0.18, now + i * 0.11 + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.11 + 0.45);
+        gain.gain.linearRampToValueAtTime(0.16, now + i * 0.11 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.11 + 0.42);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(now + i * 0.11);
-        osc.stop(now + i * 0.11 + 0.5);
+        osc.stop(now + i * 0.11 + 0.45);
       });
     }
 
-    function playSuspenseSound(durationSec = 2.0) {
-      if (!musicEnabled) return;
+    // Son réaliste de carte qui se retourne (whoosh papier + léger claquement)
+    function playCardFlipSound() {
       const ctx = getAudioContext();
       if (!ctx) return;
       const now = ctx.currentTime;
+      const duration = 0.24;
 
-      // Baisse automatique de la musique de fond pendant le suspense
-      if (bgMasterGain && isBgPlaying) {
-        bgMasterGain.gain.setTargetAtTime(0.12, now, 0.1);
-        setTimeout(() => {
-          if (bgMasterGain && isBgPlaying && musicEnabled) {
-            bgMasterGain.gain.setTargetAtTime(0.7, ctx.currentTime, 0.3);
-          }
-        }, (durationSec * 1000) + 100);
+      const bufferSize = Math.floor(ctx.sampleRate * duration);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1);
       }
 
-      const osc = ctx.createOscillator();
-      const lfo = ctx.createOscillator();
-      const lfoGain = ctx.createGain();
-      const mainGain = ctx.createGain();
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
       const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.Q.setValueAtTime(2.2, now);
+      filter.frequency.setValueAtTime(420, now);
+      filter.frequency.exponentialRampToValueAtTime(1950, now + duration * 0.65);
+      filter.frequency.exponentialRampToValueAtTime(750, now + duration);
 
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(95, now);
-      osc.frequency.exponentialRampToValueAtTime(380, now + durationSec - 0.1);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.32, now + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-      lfo.frequency.setValueAtTime(8, now);
-      lfo.frequency.linearRampToValueAtTime(22, now + durationSec - 0.1);
-      lfoGain.gain.setValueAtTime(0.08, now);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
 
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(300, now);
-      filter.frequency.exponentialRampToValueAtTime(1600, now + durationSec - 0.1);
-
-      mainGain.gain.setValueAtTime(0.05, now);
-      mainGain.gain.linearRampToValueAtTime(0.22, now + durationSec - 0.15);
-      mainGain.gain.exponentialRampToValueAtTime(0.001, now + durationSec);
-
-      lfo.connect(lfoGain);
-      lfoGain.connect(mainGain.gain);
-      osc.connect(filter);
-      filter.connect(mainGain);
-      mainGain.connect(ctx.destination);
-
-      osc.start(now);
-      lfo.start(now);
-      osc.stop(now + durationSec);
-      lfo.stop(now + durationSec);
+      noise.start(now);
+      noise.stop(now + duration);
     }
 
+    // Jingle sonore de victoire
     function playVictorySound() {
-      if (!musicEnabled) return;
       const ctx = getAudioContext();
       if (!ctx) return;
       const now = ctx.currentTime;
@@ -968,7 +951,7 @@
         { freq: 523.25, time: 0.00, dur: 0.18 }, // Do5
         { freq: 659.25, time: 0.14, dur: 0.18 }, // Mi5
         { freq: 783.99, time: 0.28, dur: 0.18 }, // Sol5
-        { freq: 1046.50, time: 0.44, dur: 0.65 } // Do6
+        { freq: 1046.50, time: 0.44, dur: 0.75 } // Do6
       ];
 
       notes.forEach(n => {
@@ -978,7 +961,7 @@
         osc.frequency.setValueAtTime(n.freq, now + n.time);
 
         gain.gain.setValueAtTime(0.001, now + n.time);
-        gain.gain.linearRampToValueAtTime(0.22, now + n.time + 0.03);
+        gain.gain.linearRampToValueAtTime(0.24, now + n.time + 0.03);
         gain.gain.exponentialRampToValueAtTime(0.001, now + n.time + n.dur);
 
         osc.connect(gain);
@@ -986,6 +969,86 @@
         osc.start(now + n.time);
         osc.stop(now + n.time + n.dur + 0.05);
       });
+    }
+
+    // =========================================
+    // ANIMATION CONFETTIS CÔTÉ GAGNANT (TV)
+    // =========================================
+    let confettiAnimId = null;
+    function launchWinnerConfetti(winnerSide) {
+      const canvas = document.getElementById('confetti-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+
+      const colors = winnerSide === 'blue'
+        ? ['#38bdf8', '#0284c7', '#fbbf24', '#ffffff', '#7dd3fc']
+        : ['#fb7185', '#e11d48', '#fbbf24', '#ffffff', '#fda4af'];
+
+      const minX = winnerSide === 'blue' ? 0 : canvas.width * 0.5;
+      const maxX = winnerSide === 'blue' ? canvas.width * 0.5 : canvas.width;
+
+      const pieces = [];
+      for (let i = 0; i < 150; i++) {
+        pieces.push({
+          x: minX + Math.random() * (maxX - minX),
+          y: -20 - Math.random() * canvas.height * 0.8,
+          w: 10 + Math.random() * 12,
+          h: 6 + Math.random() * 8,
+          vx: (Math.random() - 0.5) * 4,
+          vy: 3 + Math.random() * 5,
+          angle: Math.random() * Math.PI * 2,
+          spin: (Math.random() - 0.5) * 0.16,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+
+      const startTime = performance.now();
+      function animate(now) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.angle += p.spin;
+
+          if (p.x < minX) p.x = minX;
+          if (p.x > maxX) p.x = maxX;
+          if (p.y > canvas.height + 20 && now - startTime < 7500) {
+            p.y = -20;
+            p.x = minX + Math.random() * (maxX - minX);
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+
+        if (now - startTime < 9000) {
+          confettiAnimId = requestAnimationFrame(animate);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          confettiAnimId = null;
+        }
+      }
+      confettiAnimId = requestAnimationFrame(animate);
+    }
+
+    function stopWinnerConfetti() {
+      if (confettiAnimId) {
+        cancelAnimationFrame(confettiAnimId);
+        confettiAnimId = null;
+      }
+      const canvas = document.getElementById('confetti-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
     }
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -998,8 +1061,8 @@
     document.getElementById('rules-close-btn').addEventListener('click', () => {
       document.getElementById('rules-modal').style.display = 'none';
     });
-    document.getElementById('victory-close-btn').addEventListener('click', () => {
-      document.getElementById('victory-modal').style.display = 'none';
+    document.getElementById('mob-victory-close-btn').addEventListener('click', () => {
+      document.getElementById('mob-victory-modal').style.display = 'none';
     });
 
     // =========================================
@@ -1008,6 +1071,7 @@
     if (!isMobileMode) {
       let deck = [];
       let targetNumber = 500;
+      let autoStartDone = false;
       const connections = [];
 
       const gameState = {
@@ -1027,18 +1091,27 @@
       }
 
       function initGame(resetConnections = false) {
+        stopWinnerConfetti();
+        document.getElementById('tv-victory-banner').style.display = 'none';
+
         deck = shuffleArray(BASE_POOL);
-        // La cible démarre TOUJOURS à 500 au début de la partie
         targetNumber = 500;
         document.getElementById('tv-target').textContent = targetNumber;
 
         ['blue', 'red'].forEach(team => {
-          if (resetConnections) gameState[team].connected = false;
+          if (resetConnections) {
+            gameState[team].connected = false;
+            autoStartDone = false;
+          }
           gameState[team].hand = drawCards(6);
           gameState[team].powersUsed = [false, false, false];
           gameState[team].submission = null;
 
-          document.getElementById(`tv-${team}-reveal`).style.display = 'none';
+          const revealGroup = document.getElementById(`tv-${team}-reveal`);
+          revealGroup.classList.remove('card-flip-out', 'card-flip-in');
+          revealGroup.style.display = 'none';
+
+          document.getElementById(`tv-${team}-question-fo`).style.display = 'block';
           document.getElementById(`tv-${team}-value`).style.display = 'none';
           document.getElementById(`tv-${team}-verdict`).style.display = 'none';
           for (let p = 0; p < 3; p++) {
@@ -1095,9 +1168,12 @@
           box.appendChild(p);
         });
 
+        const revealGroup = document.getElementById(`tv-${team}-reveal`);
+        revealGroup.classList.remove('card-flip-out', 'card-flip-in');
+        document.getElementById(`tv-${team}-question-fo`).style.display = 'block';
         document.getElementById(`tv-${team}-value`).style.display = 'none';
         document.getElementById(`tv-${team}-verdict`).style.display = 'none';
-        document.getElementById(`tv-${team}-reveal`).style.display = 'block';
+        revealGroup.style.display = 'block';
 
         requestAnimationFrame(() => {
           const maxSz = sub.cards.length > 1 ? 54 : 74;
@@ -1123,78 +1199,101 @@
         const subR = gameState.red.submission;
         if (!subB || !subR) return;
 
-        playSuspenseSound(2.0);
-
+        // Petit délai de 450ms après la 2e validation, puis retournement 3D des cartes avec son de carte
         setTimeout(() => {
-          const valB = computeEffectiveValue(subB);
-          const valR = computeEffectiveValue(subR);
+          const revB = document.getElementById('tv-blue-reveal');
+          const revR = document.getElementById('tv-red-reveal');
 
-          const textB = document.getElementById('tv-blue-value');
-          const textR = document.getElementById('tv-red-value');
-          textB.textContent = valB;
-          textR.textContent = valR;
-          textB.style.display = 'block';
-          textR.style.display = 'block';
-
-          const diffB = Math.abs(valB - targetNumber);
-          const diffR = Math.abs(valR - targetNumber);
-
-          const blueWins = diffB <= diffR;
-          const winner = blueWins ? 'blue' : 'red';
-          const loser = blueWins ? 'red' : 'blue';
-
-          const verdictB = document.getElementById('tv-blue-verdict');
-          const verdictR = document.getElementById('tv-red-verdict');
-          verdictB.setAttribute('href', blueWins ? 'assets/vrai.svg' : 'assets/Faux.svg');
-          verdictR.setAttribute('href', blueWins ? 'assets/Faux.svg' : 'assets/vrai.svg');
-          verdictB.style.display = 'block';
-          verdictR.style.display = 'block';
-
-          const playedIdsB = new Set(subB.cards.map(c => c.id));
-          const playedIdsR = new Set(subR.cards.map(c => c.id));
-          gameState.blue.hand = gameState.blue.hand.filter(c => !playedIdsB.has(c.id));
-          gameState.red.hand = gameState.red.hand.filter(c => !playedIdsR.has(c.id));
-
-          targetNumber = blueWins ? valB : valR;
-          document.getElementById('tv-target').textContent = targetNumber;
-
-          const loserSub = gameState[loser].submission;
-          if (loserSub.cards.length === 2) {
-            sendToTeam(loser, {
-              type: 'CHOOSE_NEXT_TARGET',
-              cards: loserSub.cards
-            });
-            gameState[loser].hand.push(...drawCards(2));
-          } else {
-            gameState[loser].hand.push(...drawCards(1));
-          }
-
-          updateTvCounters();
-
-          if (gameState[winner].hand.length === 0) {
-            playVictorySound();
-            const winName = winner === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
-            document.getElementById('victory-title').textContent = `Victoire de l'${winName} !`;
-            document.getElementById('victory-modal').style.display = 'flex';
-            connections.forEach(c => {
-              if (c.open) c.send({ type: 'GAME_OVER', winnerName: winName });
-            });
-            return;
-          }
+          playCardFlipSound();
+          revB.classList.add('card-flip-out');
+          revR.classList.add('card-flip-out');
 
           setTimeout(() => {
-            gameState.blue.submission = null;
-            gameState.red.submission = null;
-            document.getElementById('tv-blue-reveal').style.display = 'none';
-            document.getElementById('tv-red-reveal').style.display = 'none';
+            const valB = computeEffectiveValue(subB);
+            const valR = computeEffectiveValue(subR);
 
-            broadcastSync();
-            connections.forEach(c => {
-              if (c.open) c.send({ type: 'NEW_ROUND' });
-            });
-          }, 4500);
+            // Masque la question au recto pour afficher le nombre retourné au verso
+            document.getElementById('tv-blue-question-fo').style.display = 'none';
+            document.getElementById('tv-red-question-fo').style.display = 'none';
 
-        }, 2000);
+            const textB = document.getElementById('tv-blue-value');
+            const textR = document.getElementById('tv-red-value');
+            textB.textContent = valB;
+            textR.textContent = valR;
+            textB.style.display = 'block';
+            textR.style.display = 'block';
+
+            const diffB = Math.abs(valB - targetNumber);
+            const diffR = Math.abs(valR - targetNumber);
+
+            const blueWins = diffB <= diffR;
+            const winner = blueWins ? 'blue' : 'red';
+            const loser = blueWins ? 'red' : 'blue';
+
+            const verdictB = document.getElementById('tv-blue-verdict');
+            const verdictR = document.getElementById('tv-red-verdict');
+            verdictB.setAttribute('href', blueWins ? 'assets/vrai.svg' : 'assets/Faux.svg');
+            verdictR.setAttribute('href', blueWins ? 'assets/Faux.svg' : 'assets/vrai.svg');
+            verdictB.style.display = 'block';
+            verdictR.style.display = 'block';
+
+            revB.classList.remove('card-flip-out');
+            revR.classList.remove('card-flip-out');
+            revB.classList.add('card-flip-in');
+            revR.classList.add('card-flip-in');
+
+            const playedIdsB = new Set(subB.cards.map(c => c.id));
+            const playedIdsR = new Set(subR.cards.map(c => c.id));
+            gameState.blue.hand = gameState.blue.hand.filter(c => !playedIdsB.has(c.id));
+            gameState.red.hand = gameState.red.hand.filter(c => !playedIdsR.has(c.id));
+
+            targetNumber = blueWins ? valB : valR;
+            document.getElementById('tv-target').textContent = targetNumber;
+
+            const loserSub = gameState[loser].submission;
+            if (loserSub.cards.length === 2) {
+              sendToTeam(loser, {
+                type: 'CHOOSE_NEXT_TARGET',
+                cards: loserSub.cards
+              });
+              gameState[loser].hand.push(...drawCards(2));
+            } else {
+              gameState[loser].hand.push(...drawCards(1));
+            }
+
+            updateTvCounters();
+
+            // Vérification de fin de partie (0 carte)
+            if (gameState[winner].hand.length === 0) {
+              playVictorySound();
+              launchWinnerConfetti(winner);
+
+              const winName = winner === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
+              document.getElementById('tv-victory-banner-title').textContent = `Victoire de l'${winName} !`;
+              document.getElementById('tv-victory-banner').style.display = 'block';
+
+              connections.forEach(c => {
+                if (c.open) c.send({ type: 'GAME_OVER', winnerName: winName });
+              });
+              return;
+            }
+
+            setTimeout(() => {
+              gameState.blue.submission = null;
+              gameState.red.submission = null;
+              revB.classList.remove('card-flip-in');
+              revR.classList.remove('card-flip-in');
+              revB.style.display = 'none';
+              revR.style.display = 'none';
+
+              broadcastSync();
+              connections.forEach(c => {
+                if (c.open) c.send({ type: 'NEW_ROUND' });
+              });
+            }, 4200);
+
+          }, 280);
+        }, 450);
       }
 
       const roomId = 'zero1000-' + Math.random().toString(36).substring(2, 8);
@@ -1240,6 +1339,14 @@
               const badge = document.getElementById(`badge-${data.team}`);
               badge.textContent = data.team === 'blue' ? 'Équipe Bleue : Connectée' : 'Équipe Rouge : Connectée';
               badge.classList.add(`connected-${data.team}`);
+
+              // Démarrage automatique dès que les deux équipes sont connectées
+              if (gameState.blue.connected && gameState.red.connected && !autoStartDone) {
+                autoStartDone = true;
+                setTimeout(() => {
+                  document.getElementById('qr-overlay').style.display = 'none';
+                }, 650);
+              }
             } else {
               conn.send({ type: 'CLAIM_REJECTED' });
             }
@@ -1278,33 +1385,27 @@
             targetNumber = data.value;
             document.getElementById('tv-target').textContent = targetNumber;
           }
+
+          // Redémarrage déclenché depuis le menu du téléphone joueur
+          if (data.type === 'REQUEST_RESTART') {
+            document.getElementById('tv-menu-modal').style.display = 'none';
+            document.getElementById('tv-restart-confirm-modal').style.display = 'none';
+            initGame(false);
+            connections.forEach(c => {
+              if (c.open) c.send({ type: 'NEW_ROUND' });
+            });
+          }
         });
       });
 
       initGame(true);
 
-      // Lancement de la partie + démarrage de la musique de fond
       document.getElementById('qr-close-btn').addEventListener('click', () => {
         document.getElementById('qr-overlay').style.display = 'none';
-        if (musicEnabled) startBgMusic();
       });
 
-      // Zone cliquable du menu burger intégré au visuel de fond
       document.getElementById('tv-burger-hit').addEventListener('click', () => {
         document.getElementById('tv-menu-modal').style.display = 'flex';
-      });
-
-      // Bouton Activer / Couper la musique dans le menu TV
-      const musicBtn = document.getElementById('tv-menu-music');
-      musicBtn.addEventListener('click', () => {
-        musicEnabled = !musicEnabled;
-        if (musicEnabled) {
-          musicBtn.textContent = 'Musique : Activée';
-          startBgMusic();
-        } else {
-          musicBtn.textContent = 'Musique : Coupée';
-          stopBgMusic();
-        }
       });
 
       document.getElementById('tv-menu-close').addEventListener('click', () => {
@@ -1327,7 +1428,6 @@
       });
       document.getElementById('tv-restart-yes').addEventListener('click', () => {
         document.getElementById('tv-restart-confirm-modal').style.display = 'none';
-        document.getElementById('victory-modal').style.display = 'none';
         initGame(false);
         connections.forEach(c => {
           if (c.open) c.send({ type: 'NEW_ROUND' });
@@ -1357,6 +1457,7 @@
       let bottomIndex = 0;
       let isTopAnimating = false;
       let isBottomAnimating = false;
+      let mobileQrGenerated = false;
 
       let peer = null;
       let hostConn = null;
@@ -1423,6 +1524,7 @@
             activeRoundPower = null;
             updateActiveBanner();
             document.getElementById('mobile-locked-overlay').style.display = 'none';
+            document.getElementById('mob-victory-modal').style.display = 'none';
           }
 
           if (data.type === 'CHOOSE_NEXT_TARGET') {
@@ -1444,8 +1546,8 @@
           }
 
           if (data.type === 'GAME_OVER') {
-            document.getElementById('victory-title').textContent = `Victoire de l'${data.winnerName} !`;
-            document.getElementById('victory-modal').style.display = 'flex';
+            document.getElementById('mob-victory-title').textContent = `Victoire de l'${data.winnerName} !`;
+            document.getElementById('mob-victory-modal').style.display = 'flex';
           }
         });
 
@@ -1573,12 +1675,10 @@
         topDiv.textContent = topRow[topIndex] ? topRow[topIndex].question : 'Aucune carte';
         botDiv.textContent = bottomRow[bottomIndex] ? bottomRow[bottomIndex].question : 'Aucune carte';
 
-        // Police plus grande (64px max) auto-ajustée dans la zone blanche
         fitTextInBox(topDiv, 64, 40);
         fitTextInBox(botDiv, 64, 40);
       }
 
-      // Animation carrousel fluide (sortie d'un côté + entrée de l'autre côté)
       function animateCarouselRow(rowKey, direction) {
         const isTop = rowKey === 'top';
         const row = isTop ? topRow : bottomRow;
@@ -1818,6 +1918,9 @@
         updateActiveBanner();
       }
 
+      // =========================================
+      // MENU BURGER JOUEUR (RÈGLES, QR CODE, REDÉMARRER)
+      // =========================================
       document.getElementById('mob-burger-hit').addEventListener('click', () => {
         document.getElementById('mob-menu-modal').style.display = 'flex';
       });
@@ -1827,6 +1930,39 @@
       document.getElementById('mob-menu-rules').addEventListener('click', () => {
         document.getElementById('mob-menu-modal').style.display = 'none';
         document.getElementById('rules-modal').style.display = 'flex';
+      });
+
+      document.getElementById('mob-menu-qr').addEventListener('click', () => {
+        document.getElementById('mob-menu-modal').style.display = 'none';
+        if (!mobileQrGenerated) {
+          new QRCode(document.getElementById('mob-qrcode'), {
+            text: window.location.href,
+            width: 220,
+            height: 220,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+          });
+          mobileQrGenerated = true;
+        }
+        document.getElementById('mob-qr-modal').style.display = 'flex';
+      });
+      document.getElementById('mob-qr-close').addEventListener('click', () => {
+        document.getElementById('mob-qr-modal').style.display = 'none';
+      });
+
+      document.getElementById('mob-menu-restart').addEventListener('click', () => {
+        document.getElementById('mob-menu-modal').style.display = 'none';
+        document.getElementById('mob-restart-confirm-modal').style.display = 'flex';
+      });
+      document.getElementById('mob-restart-no').addEventListener('click', () => {
+        document.getElementById('mob-restart-confirm-modal').style.display = 'none';
+      });
+      document.getElementById('mob-restart-yes').addEventListener('click', () => {
+        document.getElementById('mob-restart-confirm-modal').style.display = 'none';
+        if (hostConn && hostConn.open) {
+          hostConn.send({ type: 'REQUEST_RESTART' });
+        }
       });
     }
   </script>
