@@ -73,15 +73,6 @@
       z-index: 90;
     }
 
-    .team-title {
-      font-family: 'MontserratCustom', sans-serif;
-      font-weight: 700;
-      font-size: 98px;
-      fill: #ffffff;
-      text-anchor: middle;
-      dominant-baseline: central;
-    }
-
     .cards-count {
       font-family: 'MontserratCustom', sans-serif;
       font-weight: 700;
@@ -166,10 +157,10 @@
 
     .tv-revealed-value {
       font-family: 'BalloonDreams', sans-serif;
-      font-size: 210px;
+      font-size: 235px;
       fill: #fbbf24;
       stroke: #0f172a;
-      stroke-width: 14px;
+      stroke-width: 16px;
       paint-order: stroke fill;
       text-anchor: middle;
       dominant-baseline: central;
@@ -438,6 +429,7 @@
       will-change: transform;
     }
 
+    /* Texte à l'intérieur des cartes Question (908.25 x 521.22, marge 55px, Montserrat gras) */
     .mobile-card-text {
       width: 100%;
       height: 100%;
@@ -445,12 +437,12 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 52px 72px;
+      padding: 55px;
       text-align: center;
       color: #0f172a;
-      font-family: 'MontserratCustom', sans-serif;
+      font-family: 'MontserratCustom', 'Montserrat', sans-serif;
       font-weight: 700;
-      font-size: 64px;
+      font-size: 60px;
       line-height: 1.18;
       overflow: hidden;
       overflow-wrap: break-word;
@@ -546,8 +538,7 @@
       <!-- Zone cliquable transparente calée sur le menu burger dessiné en haut à droite de Fond.jpg -->
       <rect id="tv-burger-hit" class="hit-area" x="3480" y="40" width="280" height="180" rx="24" fill="transparent" />
 
-      <!-- Équipe Bleue -->
-      <text x="665" y="382" class="team-title">Équipe Bleue</text>
+      <!-- Compteur cartes restantes Équipe Bleue -->
       <text id="tv-blue-count" x="665" y="685" class="cards-count">6 cartes</text>
 
       <!-- Croix rouges Faux.svg centrées sur les 3 pouvoirs de l'Équipe Bleue (305.10 x 461.71) -->
@@ -565,8 +556,7 @@
         <text x="1920" y="1775" class="tv-victory-sub">Toutes les cartes ont été défaussées !</text>
       </g>
 
-      <!-- Équipe Rouge -->
-      <text x="3175" y="382" class="team-title">Équipe Rouge</text>
+      <!-- Compteur cartes restantes Équipe Rouge -->
       <text id="tv-red-count" x="3175" y="685" class="cards-count">6 cartes</text>
 
       <!-- Croix rouges Faux.svg centrées sur les 3 pouvoirs de l'Équipe Rouge (305.10 x 461.71) -->
@@ -579,8 +569,7 @@
         <foreignObject id="tv-blue-question-fo" x="201.26" y="1435" width="894.82" height="495">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-blue-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-blue-value" x="648.67" y="1620" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-blue-verdict" href="" x="538.67" y="1745" width="220" height="220" style="display:none;" />
+        <text id="tv-blue-value" x="648.67" y="1691" class="tv-revealed-value" style="display:none;"></text>
       </g>
 
       <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Marge 55px gauche/droite : 2757.30 -> 3652.12) -->
@@ -588,8 +577,7 @@
         <foreignObject id="tv-red-question-fo" x="2757.30" y="1435" width="894.82" height="495">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-red-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-red-value" x="3204.71" y="1620" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-red-verdict" href="" x="3094.71" y="1745" width="220" height="220" style="display:none;" />
+        <text id="tv-red-value" x="3204.71" y="1691" class="tv-revealed-value" style="display:none;"></text>
       </g>
     </svg>
 
@@ -609,7 +597,7 @@
       </div>
     </div>
 
-    <!-- Menu Burger TV (sans option musique/son) -->
+    <!-- Menu Burger TV -->
     <div id="tv-menu-modal" class="modal-overlay">
       <div class="modal-card">
         <h2>Menu</h2>
@@ -652,7 +640,7 @@
       <svg viewBox="0 0 1206 2622" preserveAspectRatio="xMidYMid meet">
         <defs>
           <clipPath id="carousel-clip">
-            <rect x="92" y="520" width="1022" height="1420" />
+            <rect x="130" y="590" width="946" height="1370" />
           </clipPath>
         </defs>
 
@@ -661,56 +649,56 @@
         <!-- Compteur cartes restantes dans la case grise de gauche -->
         <text id="mob-cards-count" x="235" y="138" class="mobile-counter-text">6 cartes</text>
 
-        <!-- Compteur pouvoirs restants + éclair dans la 2e case grise -->
-        <text id="mob-powers-count" x="720" y="138" class="mobile-counter-text">3 ⚡</text>
+        <!-- Compteur pouvoirs restants (sans l'éclair) dans la 2e case grise -->
+        <text id="mob-powers-count" x="720" y="138" class="mobile-counter-text">3</text>
 
         <!-- Zone cliquable Menu Burger (haut droite) -->
         <rect id="mob-burger-hit" class="hit-area" x="945" y="65" width="175" height="145" fill="transparent" />
 
         <!-- Zone clippée contenant les 2 carrousels animés -->
         <g clip-path="url(#carousel-clip)">
-          <!-- CARTE QUESTION SUPÉRIEURE AGRANDIE (990x585) -->
+          <!-- CARTE QUESTION SUPÉRIEURE : X=150.53, Y=617.02, L=908.25, H=521.22 -->
           <g id="top-card-group" class="carousel-card-group">
-            <image href="assets/cartesquestion.svg" x="108" y="540" width="990" height="585" preserveAspectRatio="none" />
-            <foreignObject x="108" y="540" width="990" height="585">
+            <image href="assets/cartesquestion.svg" x="150.53" y="617.02" width="908.25" height="521.22" preserveAspectRatio="none" />
+            <foreignObject x="150.53" y="617.02" width="908.25" height="521.22">
               <div xmlns="http://www.w3.org/1999/xhtml" id="card-top-text" class="mobile-card-text"></div>
             </foreignObject>
           </g>
 
-          <!-- CARTE QUESTION INFÉRIEURE AGRANDIE (990x585) -->
+          <!-- CARTE QUESTION INFÉRIEURE : X=150.53, Y=1412.79, L=908.25, H=521.22 -->
           <g id="bottom-card-group" class="carousel-card-group">
-            <image href="assets/cartesquestion.svg" x="108" y="1320" width="990" height="585" preserveAspectRatio="none" />
-            <foreignObject x="108" y="1320" width="990" height="585">
+            <image href="assets/cartesquestion.svg" x="150.53" y="1412.79" width="908.25" height="521.22" preserveAspectRatio="none" />
+            <foreignObject x="150.53" y="1412.79" width="908.25" height="521.22">
               <div xmlns="http://www.w3.org/1999/xhtml" id="card-bottom-text" class="mobile-card-text"></div>
             </foreignObject>
           </g>
         </g>
 
-        <!-- Flèches indépendantes ligne du haut -->
+        <!-- Flèches indépendantes ligne du haut (centrées sur Y=877.63) -->
         <g id="top-prev" class="nav-arrow">
-          <rect x="0" y="730" width="105" height="210" fill="transparent" />
-          <polyline points="72,775 24,832 72,890" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="0" y="772" width="130" height="210" fill="transparent" />
+          <polyline points="88,820 38,877.63 88,935" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
         </g>
         <g id="top-next" class="nav-arrow">
-          <rect x="1101" y="730" width="105" height="210" fill="transparent" />
-          <polyline points="1134,775 1182,832 1134,890" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="1076" y="772" width="130" height="210" fill="transparent" />
+          <polyline points="1118,820 1168,877.63 1118,935" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
         </g>
 
         <!-- Bouton "Choisir cette carte" (Haut) -->
-        <rect id="choose-top-btn" class="hit-area" x="285" y="1145" width="636" height="115" rx="57" fill="transparent" />
+        <rect id="choose-top-btn" class="hit-area" x="285" y="1160" width="636" height="115" rx="57" fill="transparent" />
 
-        <!-- Flèches indépendantes ligne du bas -->
+        <!-- Flèches indépendantes ligne du bas (centrées sur Y=1673.40) -->
         <g id="bottom-prev" class="nav-arrow">
-          <rect x="0" y="1510" width="105" height="210" fill="transparent" />
-          <polyline points="72,1555 24,1612 72,1670" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="0" y="1568" width="130" height="210" fill="transparent" />
+          <polyline points="88,1616 38,1673.40 88,1731" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
         </g>
         <g id="bottom-next" class="nav-arrow">
-          <rect x="1101" y="1510" width="105" height="210" fill="transparent" />
-          <polyline points="1134,1555 1182,1612 1134,1670" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="1076" y="1568" width="130" height="210" fill="transparent" />
+          <polyline points="1118,1616 1168,1673.40 1118,1731" fill="none" stroke="#e2e8f0" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
         </g>
 
         <!-- Bouton "Choisir cette carte" (Bas) -->
-        <rect id="choose-bottom-btn" class="hit-area" x="285" y="1925" width="636" height="115" rx="57" fill="transparent" />
+        <rect id="choose-bottom-btn" class="hit-area" x="285" y="1950" width="636" height="115" rx="57" fill="transparent" />
 
         <!-- 3 CARTES POUVOIR + CROIX ROUGE Faux.svg -->
         <image id="mob-pwr-0-x" href="assets/Faux.svg" x="275" y="2160" width="190" height="310" style="display:none;" />
@@ -795,12 +783,15 @@
       </div>
     </div>
 
-    <!-- Modale Victoire Smartphone -->
+    <!-- Modale Victoire Smartphone avec bouton Redémarrer la partie -->
     <div id="mob-victory-modal" class="modal-overlay">
       <div class="modal-card">
         <h2 id="mob-victory-title">Victoire !</h2>
         <p>Félicitations, toutes les cartes ont été défaussées !</p>
-        <button id="mob-victory-close-btn" class="btn-primary">Fermer</button>
+        <div class="modal-btn-row">
+          <button id="mob-victory-restart-btn" class="btn-primary">Redémarrer la partie</button>
+          <button id="mob-victory-close-btn" class="btn-secondary">Fermer</button>
+        </div>
       </div>
     </div>
   </div>
@@ -905,7 +896,7 @@
       });
     }
 
-    // Son réaliste de carte qui se retourne (whoosh papier + léger claquement)
+    // Son réaliste de carte qui se retourne
     function playCardFlipSound() {
       const ctx = getAudioContext();
       if (!ctx) return;
@@ -972,10 +963,10 @@
     }
 
     // =========================================
-    // ANIMATION CONFETTIS CÔTÉ GAGNANT (TV)
+    // ANIMATION CONFETTIS CÔTÉ GAGNANT DE MANCHE OU DE PARTIE (TV)
     // =========================================
     let confettiAnimId = null;
-    function launchWinnerConfetti(winnerSide) {
+    function launchWinnerConfetti(winnerSide, isFinalVictory = false) {
       const canvas = document.getElementById('confetti-canvas');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
@@ -991,15 +982,19 @@
       const minX = winnerSide === 'blue' ? 0 : canvas.width * 0.5;
       const maxX = winnerSide === 'blue' ? canvas.width * 0.5 : canvas.width;
 
+      const count = isFinalVictory ? 170 : 95;
+      const spawnDuration = isFinalVictory ? 7500 : 2800;
+      const totalDuration = isFinalVictory ? 9500 : 4800;
+
       const pieces = [];
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < count; i++) {
         pieces.push({
           x: minX + Math.random() * (maxX - minX),
-          y: -20 - Math.random() * canvas.height * 0.8,
+          y: -20 - Math.random() * canvas.height * 0.75,
           w: 10 + Math.random() * 12,
           h: 6 + Math.random() * 8,
           vx: (Math.random() - 0.5) * 4,
-          vy: 3 + Math.random() * 5,
+          vy: 3.5 + Math.random() * 5,
           angle: Math.random() * Math.PI * 2,
           spin: (Math.random() - 0.5) * 0.16,
           color: colors[Math.floor(Math.random() * colors.length)]
@@ -1016,7 +1011,7 @@
 
           if (p.x < minX) p.x = minX;
           if (p.x > maxX) p.x = maxX;
-          if (p.y > canvas.height + 20 && now - startTime < 7500) {
+          if (p.y > canvas.height + 20 && now - startTime < spawnDuration) {
             p.y = -20;
             p.x = minX + Math.random() * (maxX - minX);
           }
@@ -1029,7 +1024,7 @@
           ctx.restore();
         });
 
-        if (now - startTime < 9000) {
+        if (now - startTime < totalDuration) {
           confettiAnimId = requestAnimationFrame(animate);
         } else {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1113,7 +1108,6 @@
 
           document.getElementById(`tv-${team}-question-fo`).style.display = 'block';
           document.getElementById(`tv-${team}-value`).style.display = 'none';
-          document.getElementById(`tv-${team}-verdict`).style.display = 'none';
           for (let p = 0; p < 3; p++) {
             document.getElementById(`tv-${team}-pwr-${p}-x`).style.display = 'none';
           }
@@ -1172,7 +1166,6 @@
         revealGroup.classList.remove('card-flip-out', 'card-flip-in');
         document.getElementById(`tv-${team}-question-fo`).style.display = 'block';
         document.getElementById(`tv-${team}-value`).style.display = 'none';
-        document.getElementById(`tv-${team}-verdict`).style.display = 'none';
         revealGroup.style.display = 'block';
 
         requestAnimationFrame(() => {
@@ -1199,7 +1192,7 @@
         const subR = gameState.red.submission;
         if (!subB || !subR) return;
 
-        // Petit délai de 450ms après la 2e validation, puis retournement 3D des cartes avec son de carte
+        // Retournement 3D des cartes avec bruitage de carte
         setTimeout(() => {
           const revB = document.getElementById('tv-blue-reveal');
           const revR = document.getElementById('tv-red-reveal');
@@ -1212,7 +1205,7 @@
             const valB = computeEffectiveValue(subB);
             const valR = computeEffectiveValue(subR);
 
-            // Masque la question au recto pour afficher le nombre retourné au verso
+            // Affiche uniquement le nombre retourné (sans V ni croix)
             document.getElementById('tv-blue-question-fo').style.display = 'none';
             document.getElementById('tv-red-question-fo').style.display = 'none';
 
@@ -1223,51 +1216,36 @@
             textB.style.display = 'block';
             textR.style.display = 'block';
 
+            revB.classList.remove('card-flip-out');
+            revR.classList.remove('card-flip-out');
+            revB.classList.add('card-flip-in');
+            revR.classList.add('card-flip-in');
+
             const diffB = Math.abs(valB - targetNumber);
             const diffR = Math.abs(valR - targetNumber);
 
             const blueWins = diffB <= diffR;
             const winner = blueWins ? 'blue' : 'red';
             const loser = blueWins ? 'red' : 'blue';
-
-            const verdictB = document.getElementById('tv-blue-verdict');
-            const verdictR = document.getElementById('tv-red-verdict');
-            verdictB.setAttribute('href', blueWins ? 'assets/vrai.svg' : 'assets/Faux.svg');
-            verdictR.setAttribute('href', blueWins ? 'assets/Faux.svg' : 'assets/vrai.svg');
-            verdictB.style.display = 'block';
-            verdictR.style.display = 'block';
-
-            revB.classList.remove('card-flip-out');
-            revR.classList.remove('card-flip-out');
-            revB.classList.add('card-flip-in');
-            revR.classList.add('card-flip-in');
+            const nextTargetValue = blueWins ? valB : valR;
 
             const playedIdsB = new Set(subB.cards.map(c => c.id));
             const playedIdsR = new Set(subR.cards.map(c => c.id));
             gameState.blue.hand = gameState.blue.hand.filter(c => !playedIdsB.has(c.id));
             gameState.red.hand = gameState.red.hand.filter(c => !playedIdsR.has(c.id));
 
-            targetNumber = blueWins ? valB : valR;
-            document.getElementById('tv-target').textContent = targetNumber;
+            const isFinalVictory = gameState[winner].hand.length === 0;
 
-            const loserSub = gameState[loser].submission;
-            if (loserSub.cards.length === 2) {
-              sendToTeam(loser, {
-                type: 'CHOOSE_NEXT_TARGET',
-                cards: loserSub.cards
-              });
-              gameState[loser].hand.push(...drawCards(2));
-            } else {
-              gameState[loser].hand.push(...drawCards(1));
-            }
+            // Animation confettis du côté de l'équipe la plus proche de la valeur cible
+            launchWinnerConfetti(winner, isFinalVictory);
 
-            updateTvCounters();
+            // Si l'équipe gagnante arrive à 0 carte : fin de partie immédiate
+            if (isFinalVictory) {
+              targetNumber = nextTargetValue;
+              document.getElementById('tv-target').textContent = targetNumber;
+              updateTvCounters();
 
-            // Vérification de fin de partie (0 carte)
-            if (gameState[winner].hand.length === 0) {
               playVictorySound();
-              launchWinnerConfetti(winner);
-
               const winName = winner === 'blue' ? 'Équipe Bleue' : 'Équipe Rouge';
               document.getElementById('tv-victory-banner-title').textContent = `Victoire de l'${winName} !`;
               document.getElementById('tv-victory-banner').style.display = 'block';
@@ -1278,7 +1256,24 @@
               return;
             }
 
+            // Attendre 5 secondes après la révélation avant de changer la valeur cible et passer à la manche suivante
             setTimeout(() => {
+              targetNumber = nextTargetValue;
+              document.getElementById('tv-target').textContent = targetNumber;
+
+              const loserSub = gameState[loser].submission;
+              if (loserSub.cards.length === 2) {
+                sendToTeam(loser, {
+                  type: 'CHOOSE_NEXT_TARGET',
+                  cards: loserSub.cards
+                });
+                gameState[loser].hand.push(...drawCards(2));
+              } else {
+                gameState[loser].hand.push(...drawCards(1));
+              }
+
+              updateTvCounters();
+
               gameState.blue.submission = null;
               gameState.red.submission = null;
               revB.classList.remove('card-flip-in');
@@ -1290,7 +1285,7 @@
               connections.forEach(c => {
                 if (c.open) c.send({ type: 'NEW_ROUND' });
               });
-            }, 4200);
+            }, 5000);
 
           }, 280);
         }, 450);
@@ -1386,7 +1381,7 @@
             document.getElementById('tv-target').textContent = targetNumber;
           }
 
-          // Redémarrage déclenché depuis le menu du téléphone joueur
+          // Redémarrage déclenché depuis le menu ou la fin de partie d'un téléphone joueur
           if (data.type === 'REQUEST_RESTART') {
             document.getElementById('tv-menu-modal').style.display = 'none';
             document.getElementById('tv-restart-confirm-modal').style.display = 'none';
@@ -1638,8 +1633,9 @@
         const total = myHand.length;
         document.getElementById('mob-cards-count').textContent = `${total} ${total > 1 ? 'cartes' : 'carte'}`;
 
+        // Compteur pouvoirs restants sans l'icône éclair
         const remainingPowers = powersUsed.filter(u => !u).length;
-        document.getElementById('mob-powers-count').textContent = `${remainingPowers} ⚡`;
+        document.getElementById('mob-powers-count').textContent = `${remainingPowers}`;
 
         for (let i = 0; i < 3; i++) {
           const xImg = document.getElementById(`mob-pwr-${i}-x`);
@@ -1675,8 +1671,8 @@
         topDiv.textContent = topRow[topIndex] ? topRow[topIndex].question : 'Aucune carte';
         botDiv.textContent = bottomRow[bottomIndex] ? bottomRow[bottomIndex].question : 'Aucune carte';
 
-        fitTextInBox(topDiv, 64, 40);
-        fitTextInBox(botDiv, 64, 40);
+        fitTextInBox(topDiv, 60, 36);
+        fitTextInBox(botDiv, 60, 36);
       }
 
       function animateCarouselRow(rowKey, direction) {
@@ -1690,8 +1686,8 @@
         else isBottomAnimating = true;
 
         const group = document.getElementById(isTop ? 'top-card-group' : 'bottom-card-group');
-        const exitX = direction === 'next' ? -1150 : 1150;
-        const enterX = direction === 'next' ? 1150 : -1150;
+        const exitX = direction === 'next' ? -1080 : 1080;
+        const enterX = direction === 'next' ? 1080 : -1080;
 
         group.style.transition = 'transform 0.22s cubic-bezier(0.4, 0, 1, 1)';
         group.style.transform = `translateX(${exitX}px)`;
@@ -1919,7 +1915,7 @@
       }
 
       // =========================================
-      // MENU BURGER JOUEUR (RÈGLES, QR CODE, REDÉMARRER)
+      // MENU BURGER JOUEUR & FIN DE PARTIE
       // =========================================
       document.getElementById('mob-burger-hit').addEventListener('click', () => {
         document.getElementById('mob-menu-modal').style.display = 'flex';
@@ -1960,6 +1956,14 @@
       });
       document.getElementById('mob-restart-yes').addEventListener('click', () => {
         document.getElementById('mob-restart-confirm-modal').style.display = 'none';
+        if (hostConn && hostConn.open) {
+          hostConn.send({ type: 'REQUEST_RESTART' });
+        }
+      });
+
+      // Redémarrer directement depuis l'écran de fin de partie sur smartphone
+      document.getElementById('mob-victory-restart-btn').addEventListener('click', () => {
+        document.getElementById('mob-victory-modal').style.display = 'none';
         if (hostConn && hostConn.open) {
           hostConn.send({ type: 'REQUEST_RESTART' });
         }
