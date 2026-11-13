@@ -100,7 +100,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 14px 28px;
+      padding: 12px 0px;
       text-align: center;
       color: #ffffff;
       text-shadow: 0 5px 14px rgba(0, 0, 0, 0.85);
@@ -486,10 +486,10 @@
       <text x="665" y="382" class="team-title">Équipe Bleue</text>
       <text id="tv-blue-count" x="665" y="685" class="cards-count">6 cartes</text>
 
-      <!-- Croix rouges Faux.svg sur les 3 pouvoirs de l'Équipe Bleue -->
-      <image id="tv-blue-pwr-0-x" href="assets/Faux.svg" x="285" y="960" width="210" height="210" style="display:none;" />
-      <image id="tv-blue-pwr-1-x" href="assets/Faux.svg" x="560" y="960" width="210" height="210" style="display:none;" />
-      <image id="tv-blue-pwr-2-x" href="assets/Faux.svg" x="835" y="960" width="210" height="210" style="display:none;" />
+      <!-- Croix rouges Faux.svg centrées sur les 3 pouvoirs de l'Équipe Bleue (305.10 x 461.71) -->
+      <image id="tv-blue-pwr-0-x" href="assets/Faux.svg" x="173.81" y="951.75" width="250" height="250" style="display:none;" />
+      <image id="tv-blue-pwr-1-x" href="assets/Faux.svg" x="531.30" y="951.75" width="250" height="250" style="display:none;" />
+      <image id="tv-blue-pwr-2-x" href="assets/Faux.svg" x="888.79" y="951.75" width="250" height="250" style="display:none;" />
 
       <!-- Nombre Cible Central (toujours 500 au début) -->
       <text id="tv-target" x="1920" y="1080" class="target-number">500</text>
@@ -498,27 +498,27 @@
       <text x="3175" y="382" class="team-title">Équipe Rouge</text>
       <text id="tv-red-count" x="3175" y="685" class="cards-count">6 cartes</text>
 
-      <!-- Croix rouges Faux.svg sur les 3 pouvoirs de l'Équipe Rouge -->
-      <image id="tv-red-pwr-0-x" href="assets/Faux.svg" x="2795" y="960" width="210" height="210" style="display:none;" />
-      <image id="tv-red-pwr-1-x" href="assets/Faux.svg" x="3070" y="960" width="210" height="210" style="display:none;" />
-      <image id="tv-red-pwr-2-x" href="assets/Faux.svg" x="3345" y="960" width="210" height="210" style="display:none;" />
+      <!-- Croix rouges Faux.svg centrées sur les 3 pouvoirs de l'Équipe Rouge (305.10 x 461.71) -->
+      <image id="tv-red-pwr-0-x" href="assets/Faux.svg" x="2708.84" y="951.75" width="250" height="250" style="display:none;" />
+      <image id="tv-red-pwr-1-x" href="assets/Faux.svg" x="3066.33" y="951.75" width="250" height="250" style="display:none;" />
+      <image id="tv-red-pwr-2-x" href="assets/Faux.svg" x="3423.82" y="951.75" width="250" height="250" style="display:none;" />
 
-      <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Bas Gauche - Texte agrandi & cadré + Valeur Balloon) -->
+      <!-- CASE DE RÉVÉLATION ÉQUIPE BLEUE (Marge 55px gauche/droite : 201.26 -> 1096.08) -->
       <g id="tv-blue-reveal" style="display: none;">
-        <foreignObject x="165" y="1375" width="1000" height="390">
+        <foreignObject x="201.26" y="1435" width="894.82" height="345">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-blue-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-blue-value" x="665" y="1865" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-blue-verdict" href="" x="525" y="1450" width="280" height="280" style="display:none;" />
+        <text id="tv-blue-value" x="648.67" y="1875" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-blue-verdict" href="" x="508.67" y="1551" width="280" height="280" style="display:none;" />
       </g>
 
-      <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Bas Droite - Texte agrandi & cadré + Valeur Balloon) -->
+      <!-- CASE DE RÉVÉLATION ÉQUIPE ROUGE (Marge 55px gauche/droite : 2757.30 -> 3652.12) -->
       <g id="tv-red-reveal" style="display: none;">
-        <foreignObject x="2675" y="1375" width="1000" height="390">
+        <foreignObject x="2757.30" y="1435" width="894.82" height="345">
           <div xmlns="http://www.w3.org/1999/xhtml" id="tv-red-question-text" class="tv-question-box"></div>
         </foreignObject>
-        <text id="tv-red-value" x="3175" y="1865" class="tv-revealed-value" style="display:none;"></text>
-        <image id="tv-red-verdict" href="" x="3035" y="1450" width="280" height="280" style="display:none;" />
+        <text id="tv-red-value" x="3204.71" y="1875" class="tv-revealed-value" style="display:none;"></text>
+        <image id="tv-red-verdict" href="" x="3064.71" y="1551" width="280" height="280" style="display:none;" />
       </g>
     </svg>
 
