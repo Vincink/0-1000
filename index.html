@@ -808,7 +808,7 @@
         <p><strong>Révélation :</strong> Une fois les 2 équipes prêtes, les cartes se retournent pour révéler leurs valeurs. L'équipe la plus proche remporte la manche, défausse sa carte, et sa valeur devient la <strong>nouvelle cible</strong>. L'équipe la plus éloignée défausse sa carte et en pioche une nouvelle.</p>
         <p><strong>Pouvoir Plus / Moins 200 :</strong> Ajoutez ou soustrayez 200 à la valeur de votre carte avant la révélation.</p>
         <p><strong>Pouvoir Changer de carte :</strong> Remplacez l'une de vos cartes Question par une nouvelle carte de la pioche.</p>
-        <p><strong>Pouvoir Jouer 2 cartes :</strong> Jouez 2 cartes et choisissez la somme (+) ou la différence (-). Si vous êtes les plus proches, vous défaussez les 2 cartes ! Si vous êtes les plus éloignés, vous choisissez laquelle de vos 2 cartes devient la prochaine cible et vous reprenez 2 cartes.</p>
+        <p><strong>Pouvoir Jouer 2 cartes :</strong> Jouez 2 cartes et choisissez la somme (+) ou la différence (-). Si vous êtes les plus proches, vous défaussez les 2 cartes ! Si vous êtes les plus éloignés, vous choisissez laquelle de vos 2 cartes devient la prochaine cible et reprenez 2 cartes.</p>
       </div>
       <button id="rules-close-btn" class="btn-primary">Fermer</button>
     </div>
@@ -1500,7 +1500,7 @@
             powersUsed = data.powersUsed;
             document.getElementById('player-bg-img').setAttribute(
               'href',
-              myTeam === 'blue' ? 'assets/player/Fond_player_bleu.jpg' : 'assets/player/fond_player_rouge.jpg'
+              myTeam === 'blue' ? 'assets/player/fond_player_bleu.jpg' : 'assets/player/fond_player_rouge.jpg'
             );
             document.getElementById('team-select-screen').style.display = 'none';
             document.getElementById('player-board-screen').style.display = 'flex';
@@ -1633,7 +1633,6 @@
         const total = myHand.length;
         document.getElementById('mob-cards-count').textContent = `${total} ${total > 1 ? 'cartes' : 'carte'}`;
 
-        // Compteur pouvoirs restants sans l'icône éclair
         const remainingPowers = powersUsed.filter(u => !u).length;
         document.getElementById('mob-powers-count').textContent = `${remainingPowers}`;
 
@@ -1914,9 +1913,6 @@
         updateActiveBanner();
       }
 
-      // =========================================
-      // MENU BURGER JOUEUR & FIN DE PARTIE
-      // =========================================
       document.getElementById('mob-burger-hit').addEventListener('click', () => {
         document.getElementById('mob-menu-modal').style.display = 'flex';
       });
@@ -1961,7 +1957,6 @@
         }
       });
 
-      // Redémarrer directement depuis l'écran de fin de partie sur smartphone
       document.getElementById('mob-victory-restart-btn').addEventListener('click', () => {
         document.getElementById('mob-victory-modal').style.display = 'none';
         if (hostConn && hostConn.open) {
